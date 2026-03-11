@@ -1,0 +1,18 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Hero from '@/components/marketing/Hero.astro';
+import FeatureGrid from '@/components/marketing/FeatureGrid.astro';
+
+const features = [
+  { title: 'Zero upload workflow', description: 'Everything runs in your browser using Web Workers and jSquash codecs.' },
+  { title: 'Batch ready', description: 'Drop a full folder of screenshots and export one or all as a zip archive.' },
+  { title: 'Smart presets', description: 'Switch quickly between social, blog, high-quality, and modern format presets.' },
+  { title: 'AVIF + WebP', description: 'Generate modern formats with size-focused defaults for faster pages.' },
+  { title: 'Metadata controls', description: 'Remove EXIF metadata where possible to reduce bytes and protect privacy.' },
+  { title: 'Desktop-first UX', description: 'Powerful side-by-side preview optimized for creators and developers.' }
+];
+---
+<BaseLayout title="PixelPress — Premium Browser Image Compressor" description="Compress images locally with modern codecs and a clean, developer-friendly UI.">
+  <Hero title="Compress images in-browser. Private, fast, and built for modern workflows." subtitle="PixelPress keeps your images on-device with worker-powered jSquash compression, batch processing, and one-click exports." />
+  <FeatureGrid features={features} />
+</BaseLayout>

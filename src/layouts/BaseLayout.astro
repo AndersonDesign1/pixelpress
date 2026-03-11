@@ -1,0 +1,48 @@
+---
+import '@/styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).toString();
+const nav = [
+  { href: '/', label: 'Home' },
+  { href: '/features', label: 'Features' },
+  { href: '/about', label: 'About' },
+  { href: '/changelog', label: 'Changelog' },
+  { href: '/docs', label: 'Docs' },
+  { href: '/app', label: 'Open App' }
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+  </head>
+  <body class="min-h-screen">
+    <header class="border-b border-white/10 bg-slate-950/90 backdrop-blur">
+      <div class="container-shell flex items-center justify-between py-4">
+        <a class="font-semibold tracking-tight text-white" href="/">PixelPress</a>
+        <nav class="flex flex-wrap items-center gap-4 text-sm text-slate-300">
+          {nav.map((item) => <a class="hover:text-white" href={item.href}>{item.label}</a>)}
+        </nav>
+      </div>
+    </header>
+    <main class="container-shell py-10">
+      <slot />
+    </main>
+    <footer class="border-t border-white/10 py-8">
+      <div class="container-shell text-sm text-slate-400">
+        Built with Astro + React. Compression stays on-device for privacy.
+      </div>
+    </footer>
+  </body>
+</html>

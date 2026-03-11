@@ -1,0 +1,7 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import CompressorApp from '@/components/app/CompressorApp';
+---
+<BaseLayout title="Compressor App — PixelPress" description="Compress images in-browser with presets, previews, and zip export.">
+  <CompressorApp client:only="react" />
+</BaseLayout>

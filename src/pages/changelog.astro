@@ -1,0 +1,28 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const entries = (await getCollection('changelog')).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+const renderedEntries = await Promise.all(
+  entries.map(async (entry) => ({
+    ...entry,
+    Content: (await entry.render()).Content
+  }))
+);
+---
+<BaseLayout title="Changelog — PixelPress" description="Product and release updates for PixelPress.">
+  <h1 class="mb-8 text-4xl font-bold text-white">Changelog</h1>
+  <div class="space-y-6">
+    {renderedEntries.map((entry) => (
+      <article class="rounded-xl border border-white/10 bg-white/5 p-6">
+        <p class="text-xs uppercase tracking-wide text-cyan-300">{entry.data.version} · {entry.data.date.toISOString().slice(0, 10)}</p>
+        <h2 class="mt-2 text-xl font-semibold text-white">{entry.data.summary}</h2>
+        <div class="prose prose-invert mt-4">
+          <entry.Content />
+        </div>
+      </article>
+    ))}
+  </div>
+</BaseLayout>
