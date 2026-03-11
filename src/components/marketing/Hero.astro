@@ -6,33 +6,31 @@ interface Props {
 
 const { title, subtitle } = Astro.props;
 ---
-<section class="space-y-6 py-12">
-  <section class="hero-shell">
-    <div>
-      <p class="section-label">Browser-native image compression</p>
-      <h1 class="page-title hero-title">{title}</h1>
-      <p class="page-intro hero-intro">{subtitle}</p>
-      <div class="action-row mt-8">
-        <a href="/app" class="button-primary">Open Workspace</a>
-        <a href="/features" class="button-secondary">Review Capabilities</a>
-      </div>
+<section class="hero-shell">
+  <div>
+    <p class="section-label">Browser-native image compression</p>
+    <h1 class="page-title hero-title">{title}</h1>
+    <p class="page-intro hero-intro">{subtitle}</p>
+    <div class="action-row mt-8">
+      <a href="/app" class="button-primary">Open Workspace</a>
+      <a href="/features" class="button-secondary">Review Capabilities</a>
     </div>
-    <aside class="hero-aside surface-panel">
-      <p class="hero-aside-title">Built for daily asset handling</p>
-      <ul class="hero-list">
-        <li>
-          <span class="hero-list-label">Private by default</span>
-          <p>Compression runs locally in the browser, so screenshots and exports never leave the device.</p>
-        </li>
-        <li>
-          <span class="hero-list-label">Quiet workflow</span>
-          <p>Drop a batch, tune quality, preview the result, and ship a zip without switching tools.</p>
-        </li>
-        <li>
-          <span class="hero-list-label">Modern formats</span>
-          <p>Keep AVIF, WebP, JPEG, and PNG close at hand without treating the app like a novelty demo.</p>
-        </li>
-      </ul>
-    </aside>
-  </section>
+  </div>
+  <aside class="hero-aside surface-panel">
+    <p class="hero-aside-title">Built for daily asset handling</p>
+    <ul class="hero-list">
+      <li>
+        <span class="hero-list-label">Private by default</span>
+        <p>Compression runs locally in the browser, so screenshots and exports never leave the device.</p>
+      </li>
+      <li>
+        <span class="hero-list-label">Quiet workflow</span>
+        <p>Drop a batch, tune quality, preview the result, and ship a zip without switching tools.</p>
+      </li>
+      <li>
+        <span class="hero-list-label">Modern formats</span>
+        <p>Keep AVIF, WebP, JPEG, and PNG close at hand without treating the app like a novelty demo.</p>
+      </li>
+    </ul>
+  </aside>
 </section>

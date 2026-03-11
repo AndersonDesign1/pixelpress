@@ -45,6 +45,11 @@ const nav = [
             <a
               class="site-link"
               href={item.href}
+              aria-current={(item.href === '/'
+                ? currentPath === '/'
+                : currentPath === item.href)
+                ? 'page'
+                : undefined}
               data-active={item.href === '/'
                 ? currentPath === '/'
                 : currentPath === item.href}
