@@ -5,6 +5,7 @@ import { PresetControls } from './PresetControls';
 import { CompressionList } from './CompressionList';
 import { PreviewPanel } from './PreviewPanel';
 import { loadSettings, saveSettings } from '../../lib/utils/storage';
+import { sanitizeFilename } from '../../lib/utils/filenames';
 import type { CompressionJob, CompressionSettings, WorkerCompressResponse } from '../../lib/utils/types';
 
 const defaultSettings: CompressionSettings = {
@@ -23,14 +24,16 @@ function downloadBlob(blob: Blob, filename: string): void {
 }
 
 function uniqueName(original: string, used: Set<string>): string {
-  if (!used.has(original)) {
-    used.add(original);
-    return original;
+  const normalizedOriginal = sanitizeFilename(original, 'image.jpg');
+
+  if (!used.has(normalizedOriginal)) {
+    used.add(normalizedOriginal);
+    return normalizedOriginal;
   }
 
-  const dotIndex = original.lastIndexOf('.');
-  const base = dotIndex > -1 ? original.slice(0, dotIndex) : original;
-  const ext = dotIndex > -1 ? original.slice(dotIndex) : '';
+  const dotIndex = normalizedOriginal.lastIndexOf('.');
+  const base = dotIndex > -1 ? normalizedOriginal.slice(0, dotIndex) : normalizedOriginal;
+  const ext = dotIndex > -1 ? normalizedOriginal.slice(dotIndex) : '';
 
   let count = 1;
   while (used.has(`${base}-${count}${ext}`)) {
@@ -89,6 +92,9 @@ export default function CompressorApp() {
           })
         );
       };
+      workerRef.current.onerror = () => {
+        setGlobalError('Compression worker failed to initialize. Please refresh and try again.');
+      };
     }
     return workerRef.current;
   }
@@ -111,7 +117,7 @@ export default function CompressorApp() {
     setGlobalError('');
     setJobs((current) => {
       const combined = [...current, ...next];
-      if (!selectedId && combined[0]) setSelectedId(combined[0].id);
+      setSelectedId((existing) => existing ?? combined[0]?.id ?? null);
       return combined;
     });
   }
@@ -154,8 +160,9 @@ export default function CompressorApp() {
     const usedNames = new Set<string>(Object.keys(archive));
 
     for (const job of completed) {
-      const safeName = uniqueName(job.outputName!, usedNames);
-      archive[safeName] = new Uint8Array(await job.output!.arrayBuffer());
+      if (!job.outputName || !job.output) continue;
+      const safeName = uniqueName(job.outputName, usedNames);
+      archive[safeName] = new Uint8Array(await job.output.arrayBuffer());
     }
 
     const zip = zipSync(archive, { level: 6 });
@@ -190,7 +197,7 @@ export default function CompressorApp() {
         {selectedJob?.output && selectedJob.outputName ? (
           <button
             type="button"
-            onClick={() => downloadBlob(selectedJob.output!, selectedJob.outputName!)}
+            onClick={() => selectedJob?.output && selectedJob.outputName ? downloadBlob(selectedJob.output, selectedJob.outputName) : null}
             className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
           >
             Download Selected

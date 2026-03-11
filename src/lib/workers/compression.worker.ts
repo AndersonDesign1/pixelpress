@@ -3,6 +3,7 @@
 import { compressImageData } from '../codecs/compress';
 import type { WorkerCompressRequest, WorkerCompressResponse } from '../utils/types';
 import { outputExtension } from '../utils/format';
+import { buildOutputName } from '../utils/filenames';
 
 function postProgress(id: string, progress: number, stage: 'decoding' | 'encoding') {
   const message: WorkerCompressResponse = { id, kind: 'progress', progress, stage };
@@ -32,8 +33,7 @@ self.onmessage = async (event: MessageEvent<WorkerCompressRequest>) => {
     postProgress(id, 60, 'encoding');
     const bytesBuffer = await compressImageData(imageData, settings);
     const extension = outputExtension(settings.format, file.name.split('.').pop() ?? 'jpg');
-    const baseName = file.name.replace(/\.[^.]+$/, '');
-    const outputName = `${baseName}.${extension}`;
+    const outputName = buildOutputName(file.name, extension);
     const mime = extension === 'png' ? 'image/png' : extension === 'webp' ? 'image/webp' : extension === 'avif' ? 'image/avif' : 'image/jpeg';
     const output = new Blob([bytesBuffer], { type: mime });
     const message: WorkerCompressResponse = { id, kind: 'result', ok: true, output, outputName };
