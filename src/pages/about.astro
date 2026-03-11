@@ -1,0 +1,11 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+<BaseLayout title="About — PixelPress" description="About the PixelPress browser image compressor.">
+  <article class="prose prose-invert max-w-3xl">
+    <h1>About PixelPress</h1>
+    <p>PixelPress is a static-first Astro app with a focused React compressor experience.</p>
+    <p>We designed it to keep hosting cheap, preserve user privacy, and avoid server-side processing by default.</p>
+    <p>The compression pipeline runs inside browser workers using jSquash codecs so large batches do not block the UI thread.</p>
+  </article>
+</BaseLayout>

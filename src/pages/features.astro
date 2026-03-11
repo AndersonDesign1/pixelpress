@@ -1,0 +1,16 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import FeatureGrid from '@/components/marketing/FeatureGrid.astro';
+const features = [
+  { title: 'Drag and drop upload', description: 'Drop files directly into the app with immediate queue feedback.' },
+  { title: 'Batch compression', description: 'Run compression jobs for many files in a single pass.' },
+  { title: 'Live preview', description: 'Compare original and compressed images side by side.' },
+  { title: 'Presets', description: 'Lossless, High Quality, WebP, AVIF, Blog Optimized, Social Optimized.' },
+  { title: 'Zip exports', description: 'Download individual files or all compressed outputs as a zip.' },
+  { title: 'Local settings memory', description: 'Last-used settings persist with localStorage for speed.' }
+];
+---
+<BaseLayout title="Features — PixelPress" description="Explore PixelPress image compressor features.">
+  <h1 class="mb-6 text-4xl font-bold text-white">Features</h1>
+  <FeatureGrid features={features} />
+</BaseLayout>

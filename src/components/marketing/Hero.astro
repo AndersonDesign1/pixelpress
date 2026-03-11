@@ -1,0 +1,17 @@
+---
+interface Props {
+  title: string;
+  subtitle: string;
+}
+
+const { title, subtitle } = Astro.props;
+---
+<section class="space-y-6 py-12">
+  <p class="inline-flex rounded-full border border-cyan-400/30 px-3 py-1 text-xs text-cyan-300">Browser-native image compression</p>
+  <h1 class="max-w-3xl text-4xl font-bold tracking-tight text-white sm:text-5xl">{title}</h1>
+  <p class="max-w-2xl text-lg text-slate-300">{subtitle}</p>
+  <div class="flex gap-4">
+    <a href="/app" class="rounded-lg bg-cyan-400 px-5 py-3 font-medium text-slate-900">Launch App</a>
+    <a href="/features" class="rounded-lg border border-white/20 px-5 py-3 font-medium text-white">Explore Features</a>
+  </div>
+</section>
