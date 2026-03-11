@@ -1,7 +1,7 @@
 import type { CompressionSettings, OutputFormat } from './types';
 
 const STORAGE_KEY = 'pixelpress:last-settings:v1';
-const validFormats: OutputFormat[] = ['original', 'jpeg', 'png', 'webp', 'avif'];
+const validFormats: OutputFormat[] = ['jpeg', 'png', 'webp', 'avif'];
 
 function isValidSettings(value: unknown): value is CompressionSettings {
   if (!value || typeof value !== 'object') return false;
