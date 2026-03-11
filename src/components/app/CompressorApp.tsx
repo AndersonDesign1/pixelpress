@@ -185,50 +185,96 @@ export default function CompressorApp() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-4xl font-bold text-white">Image Compressor App</h1>
-        <p className="text-slate-300">All processing stays local in your browser. No uploads, no backend queues.</p>
-      </div>
-
-      <Dropzone onFiles={addFiles} />
-      <PresetControls settings={settings} onChange={setSettings} />
-
-      <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-        <div className="mb-2 flex items-center justify-between text-sm text-slate-200">
-          <span>Queue progress</span>
-          <span>{queueProgress}%</span>
+    <div className="workspace-shell">
+      <section className="app-intro-grid">
+        <div>
+          <p className="section-label">Compression workspace</p>
+          <h1 className="page-title">Shrink delivery files without leaving the browser.</h1>
+          <p className="page-intro">
+            PixelPress keeps batch compression private and direct. Add a folder of images, tune the output once,
+            compare the result, and export the cleaned set from one calm workspace.
+          </p>
         </div>
-        <div className="h-2 rounded-full bg-white/10">
-          <div className="h-2 rounded-full bg-cyan-400" style={{ width: `${queueProgress}%` }} />
-        </div>
+        <aside className="surface-panel app-summary">
+          <p className="panel-kicker">Session overview</p>
+          <div className="app-summary-grid">
+            <div className="summary-metric">
+              <span>Files in queue</span>
+              <strong>{jobs.length}</strong>
+            </div>
+            <div className="summary-metric">
+              <span>Completed</span>
+              <strong>{jobs.filter((job) => job.status === 'done').length}</strong>
+            </div>
+            <div className="summary-metric">
+              <span>Preferred format</span>
+              <strong>{settings.format.toUpperCase()}</strong>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <div className="app-workbench">
+        <Dropzone onFiles={addFiles} />
+        <section className="surface-panel workspace-status">
+          <div className="workspace-status-head">
+            <div>
+              <p className="panel-kicker">Batch controls</p>
+              <h2 className="panel-title">Run, review, and export the current set.</h2>
+            </div>
+            <span className="status-chip">{isProcessing ? 'Processing' : jobs.length ? 'Ready' : 'Waiting'}</span>
+          </div>
+
+          <div className="metric-row">
+            <div className="metric-line">
+              <span>Queue progress</span>
+              <strong>{queueProgress}%</strong>
+            </div>
+            <div className="metric-line">
+              <span>Selected file</span>
+              <strong>{selectedJob ? 'Focused' : 'None'}</strong>
+            </div>
+          </div>
+
+          <div className="progress-rail">
+            <div className="progress-value" style={{ width: `${queueProgress}%` }} />
+          </div>
+
+          <div className="action-row mt-4">
+            <button type="button" disabled={isProcessing} onClick={runCompression} className="button-primary">
+              Compress Batch
+            </button>
+            <button type="button" onClick={downloadAllZip} className="button-secondary">
+              Download All (.zip)
+            </button>
+            <button type="button" disabled={isProcessing} onClick={clearQueue} className="button-secondary">
+              Clear Queue
+            </button>
+            {selectedJob?.output && selectedJob.outputName ? (
+              <button
+                type="button"
+                onClick={() => selectedJob?.output && selectedJob.outputName ? downloadBlob(selectedJob.output, selectedJob.outputName) : null}
+                className="button-secondary"
+              >
+                Download Selected
+              </button>
+            ) : null}
+          </div>
+
+          <p className="support-copy mt-4" aria-live="polite">
+            {isProcessing ? 'Compression is running in the background worker.' : 'Ready for the next batch.'}
+          </p>
+
+          {globalError ? <p className="feedback-error">{globalError}</p> : null}
+        </section>
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <button type="button" disabled={isProcessing} onClick={runCompression} className="rounded-lg bg-cyan-400 px-4 py-2 font-semibold text-slate-900 disabled:cursor-not-allowed disabled:opacity-50">Compress Batch</button>
-        <button type="button" onClick={downloadAllZip} className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white">Download All (.zip)</button>
-        <button type="button" disabled={isProcessing} onClick={clearQueue} className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Clear Queue</button>
-        {selectedJob?.output && selectedJob.outputName ? (
-          <button
-            type="button"
-            onClick={() => selectedJob?.output && selectedJob.outputName ? downloadBlob(selectedJob.output, selectedJob.outputName) : null}
-            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
-          >
-            Download Selected
-          </button>
-        ) : null}
-      </div>
-
-      <p className="text-sm text-slate-300" aria-live="polite">
-        {isProcessing ? 'Compression in progress…' : 'Ready.'}
-      </p>
-
-      {globalError ? <p className="rounded-lg border border-rose-400/40 bg-rose-500/10 p-3 text-sm text-rose-200">{globalError}</p> : null}
-
-      <div className="grid gap-5 xl:grid-cols-[360px_1fr]">
-        <CompressionList jobs={jobs} selectedId={selectedId} onSelect={setSelectedId} />
+      <div className="workspace-grid">
+        <PresetControls settings={settings} onChange={setSettings} />
         <PreviewPanel job={selectedJob} />
       </div>
+
+      <CompressionList jobs={jobs} selectedId={selectedId} onSelect={setSelectedId} />
     </div>
   );
 }

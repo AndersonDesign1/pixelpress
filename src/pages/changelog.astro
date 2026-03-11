@@ -13,16 +13,22 @@ const renderedEntries = await Promise.all(
 );
 ---
 <BaseLayout title="Changelog — PixelPress" description="Product and release updates for PixelPress.">
-  <h1 class="mb-8 text-4xl font-bold text-white">Changelog</h1>
-  <div class="space-y-6">
-    {renderedEntries.map((entry) => (
-      <article class="rounded-xl border border-white/10 bg-white/5 p-6">
-        <p class="text-xs uppercase tracking-wide text-cyan-300">{entry.data.version} · {entry.data.date.toISOString().slice(0, 10)}</p>
-        <h2 class="mt-2 text-xl font-semibold text-white">{entry.data.summary}</h2>
-        <div class="prose prose-invert mt-4">
+  <section class="page-stack">
+    <div class="page-copy">
+      <p class="section-label">Release notes</p>
+      <h1 class="page-title">Small improvements, documented clearly.</h1>
+      <p class="page-intro">A running log of what changed in the product, with an emphasis on stability, privacy, and workflow quality instead of feature noise.</p>
+    </div>
+    <div class="timeline-list">
+      {renderedEntries.map((entry) => (
+        <article class="timeline-entry surface-panel">
+          <p class="timeline-meta">{entry.data.version} · {entry.data.date.toISOString().slice(0, 10)}</p>
+          <h2 class="timeline-title">{entry.data.summary}</h2>
+          <div class="timeline-body">
           <entry.Content />
-        </div>
-      </article>
-    ))}
-  </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
 </BaseLayout>

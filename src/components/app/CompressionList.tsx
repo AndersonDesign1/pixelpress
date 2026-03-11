@@ -9,28 +9,53 @@ interface CompressionListProps {
 
 export function CompressionList({ jobs, selectedId, onSelect }: CompressionListProps) {
   return (
-    <section className="space-y-2 rounded-xl border border-white/10 bg-white/5 p-5">
-      <h2 className="text-lg font-semibold text-white">Batch Queue</h2>
-      {jobs.length === 0 ? <p className="text-sm text-slate-300">No files yet. Drop images to begin.</p> : null}
-      {jobs.map((job) => {
+    <section className="surface-panel queue-panel">
+      <div className="panel-head">
+        <div>
+          <p className="panel-kicker">Queue</p>
+          <h2 className="panel-title">Review every file before export.</h2>
+        </div>
+        <span className="status-chip">{jobs.length} item{jobs.length === 1 ? '' : 's'}</span>
+      </div>
+
+      {jobs.length === 0 ? (
+        <div className="empty-state">
+          <p className="queue-empty">Start in the intake area above. Each image will appear here with its progress, output size, and any errors that need attention.</p>
+        </div>
+      ) : null}
+
+      <div className="queue-list">
+        {jobs.map((job) => {
         const ratio = job.output ? Math.round((1 - job.output.size / job.file.size) * 100) : null;
         return (
           <button
             key={job.id}
             type="button"
-            className={`w-full rounded-lg border p-3 text-left ${selectedId === job.id ? 'border-cyan-400 bg-cyan-400/10' : 'border-white/10 bg-slate-900/70'}`}
+            className={`queue-item ${selectedId === job.id ? 'is-active' : ''}`}
             onClick={() => onSelect(job.id)}
           >
-            <p className="truncate font-medium text-white">{job.file.name}</p>
-            <p className="text-xs text-slate-300">{formatBytes(job.file.size)} · {job.status}</p>
-            <div className="mt-2 h-1.5 rounded-full bg-white/10">
-              <div className="h-1.5 rounded-full bg-cyan-400" style={{ width: `${job.progress}%` }} />
+            <div className="queue-top">
+              <div>
+                <p className="queue-name truncate">{job.file.name}</p>
+                <div className="queue-meta">
+                  <span>{formatBytes(job.file.size)}</span>
+                  <span>{job.status}</span>
+                  {job.output ? <span>{formatBytes(job.output.size)} output</span> : null}
+                  {ratio !== null ? <span className="queue-savings">{ratio}% smaller</span> : null}
+                </div>
+              </div>
+              <span className="queue-status">{selectedId === job.id ? 'Selected' : job.status}</span>
             </div>
-            {job.output ? <p className="text-xs text-emerald-300">{formatBytes(job.output.size)} ({ratio}% smaller)</p> : null}
-            {job.error ? <p className="text-xs text-rose-300">{job.error}</p> : null}
+
+            <div className="progress-rail mt-3">
+              <div className="progress-value" style={{ width: `${job.progress}%` }} />
+            </div>
+
+            {job.error ? <p className="queue-error">{job.error}</p> : null}
           </button>
         );
       })}
+      </div>
     </section>
   );
 }

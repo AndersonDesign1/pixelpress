@@ -8,6 +8,9 @@ interface Props {
 
 const { title, description } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).toString();
+const currentPath = Astro.url.pathname !== '/' && Astro.url.pathname.endsWith('/')
+  ? Astro.url.pathname.slice(0, -1)
+  : Astro.url.pathname;
 const nav = [
   { href: '/', label: 'Home' },
   { href: '/features', label: 'Features' },
@@ -26,22 +29,44 @@ const nav = [
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
   </head>
-  <body class="min-h-screen">
-    <header class="border-b border-white/10 bg-slate-950/90 backdrop-blur">
-      <div class="container-shell flex items-center justify-between py-4">
-        <a class="font-semibold tracking-tight text-white" href="/">PixelPress</a>
-        <nav class="flex flex-wrap items-center gap-4 text-sm text-slate-300">
-          {nav.map((item) => <a class="hover:text-white" href={item.href}>{item.label}</a>)}
+  <body class="site-body">
+    <header class="site-header">
+      <div class="container-shell site-header-inner">
+        <a class="site-brand" href="/">
+          <span class="site-brand-mark">PixelPress</span>
+          <span class="site-brand-note">Local-first image compression</span>
+        </a>
+        <nav class="site-nav" aria-label="Primary">
+          {nav.map((item) => (
+            <a
+              class="site-link"
+              href={item.href}
+              data-active={item.href === '/'
+                ? currentPath === '/'
+                : currentPath === item.href}
+            >
+              {item.label}
+            </a>
+          ))}
         </nav>
       </div>
     </header>
-    <main class="container-shell py-10">
-      <slot />
+    <main class="site-main">
+      <div class="container-shell">
+        <slot />
+      </div>
     </main>
-    <footer class="border-t border-white/10 py-8">
-      <div class="container-shell text-sm text-slate-400">
-        Built with Astro + React. Compression stays on-device for privacy.
+    <footer class="site-footer">
+      <div class="container-shell site-footer-inner">
+        <div>
+          <p class="site-footer-title">PixelPress</p>
+          <p class="site-footer-copy">Compression stays on-device, exports stay quick, and the workflow stays quiet.</p>
+        </div>
+        <p class="site-footer-meta">Built with Astro and React for creators who need privacy, speed, and batch-ready output.</p>
       </div>
     </footer>
   </body>

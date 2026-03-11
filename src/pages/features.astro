@@ -11,6 +11,12 @@ const features = [
 ];
 ---
 <BaseLayout title="Features — PixelPress" description="Explore PixelPress image compressor features.">
-  <h1 class="mb-6 text-4xl font-bold text-white">Features</h1>
-  <FeatureGrid features={features} />
+  <section class="page-stack">
+    <div class="page-copy">
+      <p class="section-label">Capabilities</p>
+      <h1 class="page-title">A calmer workflow for heavy image batches.</h1>
+      <p class="page-intro">PixelPress keeps the compression experience lean: one workspace for intake, tuning, previewing, and export, without a backend queue sitting between you and the result.</p>
+    </div>
+    <FeatureGrid features={features} />
+  </section>
 </BaseLayout>
