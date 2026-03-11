@@ -184,7 +184,8 @@ export default function CompressorApp() {
         });
       });
 
-      downloadBlob(new Blob([zipData as unknown as BlobPart], { type: 'application/zip' }), 'pixelpress-compressed.zip');
+      const zipBuffer = zipData.buffer.slice(zipData.byteOffset, zipData.byteOffset + zipData.byteLength);
+      downloadBlob(new Blob([zipBuffer], { type: 'application/zip' }), 'pixelpress-compressed.zip');
     } catch (err) {
       setGlobalError(err instanceof Error ? err.message : 'Failed to create zip archive.');
     }

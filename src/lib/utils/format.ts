@@ -11,5 +11,5 @@ export function formatBytes(bytes: number): string {
 }
 
 export function outputExtension(format: string): string {
-  return format;
+  return format === 'jpeg' ? 'jpg' : format;
 }
