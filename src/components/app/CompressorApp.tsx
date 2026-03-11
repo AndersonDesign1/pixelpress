@@ -10,8 +10,7 @@ import type { CompressionJob, CompressionSettings, WorkerCompressResponse } from
 
 const defaultSettings: CompressionSettings = {
   format: 'webp',
-  quality: 82,
-  stripMetadata: true
+  quality: 82
 };
 
 function downloadBlob(blob: Blob, filename: string): void {
@@ -19,8 +18,10 @@ function downloadBlob(blob: Blob, filename: string): void {
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  document.body.appendChild(a);
   a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 0);
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
 function uniqueName(original: string, used: Set<string>): string {
@@ -94,6 +95,13 @@ export default function CompressorApp() {
       };
       workerRef.current.onerror = () => {
         setGlobalError('Compression worker failed to initialize. Please refresh and try again.');
+        setJobs((current) =>
+          current.map((job) =>
+            job.status === 'processing'
+              ? { ...job, status: 'error', error: 'Compression worker failed to initialize.', progress: 100 }
+              : job
+          )
+        );
       };
     }
     return workerRef.current;
@@ -178,7 +186,7 @@ export default function CompressorApp() {
 
       const zipBytes = new Uint8Array(zipData.byteLength);
       zipBytes.set(zipData);
-      downloadBlob(new Blob([zipBytes.buffer as ArrayBuffer], { type: 'application/zip' }), 'pixelpress-compressed.zip');
+      downloadBlob(new Blob([zipBytes], { type: 'application/zip' }), 'pixelpress-compressed.zip');
     } catch (err) {
       setGlobalError(err instanceof Error ? err.message : 'Failed to create zip archive.');
     }

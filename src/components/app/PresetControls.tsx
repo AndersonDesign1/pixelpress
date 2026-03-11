@@ -11,7 +11,7 @@ export function PresetControls({ settings, onChange }: PresetControlsProps) {
     <section className="surface-panel settings-panel">
       <div>
         <p className="panel-kicker">Settings</p>
-        <h2 className="panel-title">Tune quality, format, and metadata once.</h2>
+        <h2 className="panel-title">Tune quality and format once.</h2>
       </div>
 
       <div className="preset-grid">
@@ -23,8 +23,7 @@ export function PresetControls({ settings, onChange }: PresetControlsProps) {
             className="preset-card"
             data-active={
               preset.settings.format === settings.format &&
-              preset.settings.quality === settings.quality &&
-              preset.settings.stripMetadata === settings.stripMetadata
+              preset.settings.quality === settings.quality
             }
           >
             <p className="preset-card-title">{preset.label}</p>
@@ -68,16 +67,6 @@ export function PresetControls({ settings, onChange }: PresetControlsProps) {
             <option value="avif">AVIF</option>
           </select>
         </div>
-
-        <label className="checkbox-row">
-          <input
-            className="field-checkbox"
-            type="checkbox"
-            checked={settings.stripMetadata}
-            onChange={(event) => onChange({ ...settings, stripMetadata: event.target.checked })}
-          />
-          Strip metadata where possible
-        </label>
       </div>
     </section>
   );

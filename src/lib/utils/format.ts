@@ -10,7 +10,6 @@ export function formatBytes(bytes: number): string {
   return `${value.toFixed(1)} ${units[unit]}`;
 }
 
-export function outputExtension(format: string, fallback: string): string {
-  if (format === 'original') return fallback;
-  return format;
+export function outputExtension(format: string): string {
+  return format === 'jpeg' ? 'jpg' : format;
 }

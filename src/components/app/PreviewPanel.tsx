@@ -7,7 +7,7 @@ interface PreviewPanelProps {
 }
 
 export function PreviewPanel({ job }: PreviewPanelProps) {
-  const originalUrl = useMemo(() => (job ? URL.createObjectURL(job.file) : null), [job]);
+  const originalUrl = useMemo(() => (job?.file ? URL.createObjectURL(job.file) : null), [job?.file]);
   const outputUrl = useMemo(() => (job?.output ? URL.createObjectURL(job.output) : null), [job?.output]);
 
   useEffect(() => {

@@ -10,7 +10,6 @@ function isValidSettings(value: unknown): value is CompressionSettings {
     typeof candidate.quality === 'number' &&
     candidate.quality >= 1 &&
     candidate.quality <= 100 &&
-    typeof candidate.stripMetadata === 'boolean' &&
     typeof candidate.format === 'string' &&
     validFormats.includes(candidate.format as OutputFormat)
   );

@@ -32,11 +32,9 @@ self.onmessage = async (event: MessageEvent<WorkerCompressRequest>) => {
     const imageData = await fileToImageData(file);
     postProgress(id, 60, 'encoding');
     const bytesBuffer = await compressImageData(imageData, settings);
-    const actualFormat = settings.format === 'original' ? 'jpeg' : settings.format;
-    const requestedExtension = outputExtension(settings.format, file.name.split('.').pop() ?? 'jpg');
-    const outputExtensionFinal = settings.format === 'original' ? 'jpg' : requestedExtension;
-    const outputName = buildOutputName(file.name, outputExtensionFinal);
-    const mime = actualFormat === 'png' ? 'image/png' : actualFormat === 'webp' ? 'image/webp' : actualFormat === 'avif' ? 'image/avif' : 'image/jpeg';
+    const requestedExtension = outputExtension(settings.format);
+    const outputName = buildOutputName(file.name, requestedExtension);
+    const mime = settings.format === 'png' ? 'image/png' : settings.format === 'webp' ? 'image/webp' : settings.format === 'avif' ? 'image/avif' : 'image/jpeg';
     const output = new Blob([bytesBuffer], { type: mime });
     const message: WorkerCompressResponse = { id, kind: 'result', ok: true, output, outputName };
     self.postMessage(message);

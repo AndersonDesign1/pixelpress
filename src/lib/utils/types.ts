@@ -1,4 +1,4 @@
-export type OutputFormat = 'original' | 'jpeg' | 'png' | 'webp' | 'avif';
+export type OutputFormat = 'jpeg' | 'png' | 'webp' | 'avif';
 
 export interface CompressionPreset {
   id: string;
@@ -10,7 +10,6 @@ export interface CompressionPreset {
 export interface CompressionSettings {
   format: OutputFormat;
   quality: number;
-  stripMetadata: boolean;
 }
 
 export type JobStatus = 'queued' | 'processing' | 'done' | 'error';
