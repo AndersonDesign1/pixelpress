@@ -5,7 +5,7 @@ import { SITE_PERSONAL_URL, SITE_REPO_URL } from "@/lib/utils/site";
 
 <BaseLayout
   title="About — PixelPress"
-  description="Why PixelPress exists and what it does."
+  description="Why PixelPress exists and what it tries to do."
 >
   <section class="grid gap-8">
     <div class="max-w-[42rem] space-y-4">
@@ -13,19 +13,18 @@ import { SITE_PERSONAL_URL, SITE_REPO_URL } from "@/lib/utils/site";
         Why I built this
       </p>
       <h1
-        class="max-w-[14ch] font-display text-[clamp(2rem,4vw,3.2rem)] leading-[1.02] tracking-[-0.05em] text-text"
+        class="max-w-[15ch] font-display text-[clamp(2rem,4vw,3.2rem)] leading-[1.02] tracking-[-0.05em] text-text"
       >
-        I wanted something quieter than the existing tools.
+        I wanted a calmer way to do this.
       </h1>
       <p class="text-[1rem] leading-7 text-white/58">
-        TinyPNG is useful until you hit the free-tier ceiling. Squash used to be
-        a nice option, but it is no longer maintained. I wanted one quiet tool
-        for screenshots, exports, product images, and handoff assets that could
-        handle more than a tiny batch.
+        TinyPNG is handy until you hit the free limit. Squash was great for a
+        while, but it is no longer maintained. I wanted one local tool that
+        could handle bigger batches without making me think about limits first.
       </p>
       <p class="text-[1rem] leading-7 text-white/58">
-        PixelPress runs in the browser, uses jSquash and web workers, and keeps
-        the whole job on your machine.
+        PixelPress runs in the browser, keeps the work on your machine, and now
+        lets you compare versions instead of guessing which one to keep.
       </p>
       <div class="flex flex-wrap gap-4 text-sm text-white/68">
         <a
@@ -55,10 +54,10 @@ import { SITE_PERSONAL_URL, SITE_REPO_URL } from "@/lib/utils/site";
     <div
       class="grid gap-3 text-[0.98rem] leading-7 text-white/58 sm:grid-cols-2"
     >
-      <p>Local-first. Batch compression. Format conversion.</p>
       <p>
-        Built with jSquash, web workers, and a simple React app inside Astro.
+        Local-first. Batch compression. Version comparison. Format conversion.
       </p>
+      <p>Built with jSquash, web workers, Astro, and a small React app.</p>
     </div>
   </section>
 </BaseLayout>

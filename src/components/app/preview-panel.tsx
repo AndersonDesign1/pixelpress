@@ -1,159 +1,404 @@
 import { Icon } from "@iconify/react";
 import { useEffect, useMemo, useState } from "react";
-import { formatBytes } from "../../lib/utils/format";
-import type { CompressionJob } from "../../lib/utils/types";
+import {
+  ReactCompareSlider,
+  ReactCompareSliderHandle,
+} from "react-compare-slider";
+import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import {
+  formatBytes,
+  formatLabel,
+  savingsPercent,
+} from "../../lib/utils/format";
+import type { CompressionJob, CompressionVariant } from "../../lib/utils/types";
 
 interface PreviewPanelProps {
   job?: CompressionJob;
+  onSelectVariant: (variantId: string | null) => void;
 }
 
-export function PreviewPanel({ job }: PreviewPanelProps) {
-  const [view, setView] = useState<"original" | "compressed">("original");
-  const [previewSize, setPreviewSize] = useState({ height: 1, width: 1 });
-  const originalUrl = useMemo(
-    () => (job?.file ? URL.createObjectURL(job.file) : null),
-    [job?.file]
-  );
-  const outputUrl = useMemo(
-    () => (job?.output ? URL.createObjectURL(job.output) : null),
-    [job?.output]
-  );
-  const showUrl = view === "compressed" && outputUrl ? outputUrl : originalUrl;
+function useObjectUrl(file?: Blob | File) {
+  const [url, setUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    return () => {
-      if (originalUrl) {
-        URL.revokeObjectURL(originalUrl);
-      }
-      if (outputUrl) {
-        URL.revokeObjectURL(outputUrl);
-      }
-    };
-  }, [originalUrl, outputUrl]);
-
-  useEffect(() => {
-    if (job?.output) {
-      setView("compressed");
-    } else {
-      setView("original");
-    }
-  }, [job?.output]);
-
-  useEffect(() => {
-    if (!showUrl) {
+    if (!file) {
+      setUrl(null);
       return;
     }
 
-    const image = new Image();
-    image.onload = () => {
-      setPreviewSize({
-        width: image.naturalWidth || 1,
-        height: image.naturalHeight || 1,
-      });
-    };
-    image.src = showUrl;
+    const nextUrl = URL.createObjectURL(file);
+    setUrl(nextUrl);
 
     return () => {
-      image.onload = null;
+      URL.revokeObjectURL(nextUrl);
     };
-  }, [showUrl]);
+  }, [file]);
+
+  return url;
+}
+
+function variantSummary(variant: CompressionVariant, originalSize: number) {
+  if (variant.status === "processing") {
+    return {
+      text: "Working on it...",
+      tone: "text-sky-300",
+    };
+  }
+
+  if (variant.status === "error") {
+    return {
+      text: variant.error ?? "That pass failed.",
+      tone: "text-rose-300",
+    };
+  }
+
+  if (variant.sizeDelta === null || !variant.output) {
+    return {
+      text: "No output yet.",
+      tone: "text-white/62",
+    };
+  }
+
+  if (variant.sizeDelta > 0) {
+    return {
+      text: `${formatLabel(variant.format)} came out ${savingsPercent(
+        variant.sizeDelta,
+        originalSize
+      )}% larger.`,
+      tone: "text-amber-300",
+    };
+  }
+
+  if (variant.sizeDelta === 0) {
+    return {
+      text: `${formatLabel(variant.format)} landed at the same size.`,
+      tone: "text-white/62",
+    };
+  }
+
+  return {
+    text: `${formatLabel(variant.format)} saves ${savingsPercent(
+      variant.sizeDelta,
+      originalSize
+    )}%.`,
+    tone: "text-emerald-300",
+  };
+}
+
+function compareImage(src: string, alt: string) {
+  return (
+    <div className="flex h-full w-full items-center justify-center p-4">
+      <img
+        alt={alt}
+        className="h-full w-full rounded-[0.5rem] object-contain object-center"
+        height={1200}
+        src={src}
+        width={1600}
+      />
+    </div>
+  );
+}
+
+function singlePreviewImage(src: string, alt: string) {
+  return (
+    <div className="flex h-full w-full items-center justify-center p-4">
+      <img
+        alt={alt}
+        className="h-full w-full rounded-[0.75rem] object-contain object-center"
+        height={1200}
+        src={src}
+        width={1600}
+      />
+    </div>
+  );
+}
+
+export function PreviewPanel({ job, onSelectVariant }: PreviewPanelProps) {
+  const [mode, setMode] = useState<"compare" | "inspect">("compare");
+  const originalUrl = useObjectUrl(job?.file);
+  const activeVariant = useMemo(
+    () =>
+      job?.variants.find((variant) => variant.id === job.activeVariantId) ??
+      null,
+    [job]
+  );
+  const activeOutputUrl = useObjectUrl(activeVariant?.output);
+  const latestVariant = job?.variants[job.variants.length - 1] ?? null;
+
+  useEffect(() => {
+    if (!(job?.activeVariantId && activeVariant?.output)) {
+      setMode("compare");
+    }
+  }, [activeVariant?.output, job?.activeVariantId]);
 
   if (!job) {
     return (
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 text-[0.9rem] text-muted opacity-60">
           <Icon className="text-muted" icon="hugeicons:image-01" width={28} />
-          <p>Select a file to preview</p>
+          <p>Select a file to compare.</p>
         </div>
       </div>
     );
   }
-  const ratio = job.output
-    ? Math.round((1 - job.output.size / job.file.size) * 100)
-    : null;
+
+  const bestVariant =
+    job.bestVariantId === null
+      ? null
+      : (job.variants.find((variant) => variant.id === job.bestVariantId) ??
+        null);
+  let activeSummary = {
+    text: "Original is still the best result so far.",
+    tone: "text-white/62",
+  };
+  if (activeVariant) {
+    activeSummary = variantSummary(activeVariant, job.file.size);
+  } else if (latestVariant?.status === "larger-than-original") {
+    activeSummary = {
+      text: "The latest try got bigger, so the original stays the default.",
+      tone: "text-amber-300",
+    };
+  }
+  const compareReady = !!(
+    originalUrl &&
+    activeOutputUrl &&
+    activeVariant?.output
+  );
+  const compareContent =
+    compareReady && originalUrl && activeOutputUrl ? (
+      <div className="h-full w-full overflow-hidden p-4">
+        <ReactCompareSlider
+          boundsPadding={12}
+          className="h-full w-full rounded-[0.75rem] border border-border bg-black/40"
+          handle={
+            <ReactCompareSliderHandle
+              buttonStyle={{
+                background: "rgba(8,8,8,0.92)",
+                border: "1px solid rgba(255,255,255,0.16)",
+              }}
+              linesStyle={{
+                background: "rgba(255,255,255,0.24)",
+              }}
+            />
+          }
+          itemOne={compareImage(originalUrl, `Original ${job.file.name}`)}
+          itemTwo={compareImage(activeOutputUrl, `Compressed ${job.file.name}`)}
+          onlyHandleDraggable
+          position={50}
+        />
+      </div>
+    ) : null;
+  const compareFallback = originalUrl ? (
+    <div className="flex h-full w-full flex-col overflow-hidden p-4">
+      <div className="mb-3 flex items-center justify-between text-[0.82rem]">
+        <span className="text-white/62">Original preview</span>
+        <span className="text-amber-300">
+          Nothing smaller yet, so the original stays selected.
+        </span>
+      </div>
+      <div className="min-h-0 flex-1 overflow-hidden rounded-[0.75rem] border border-border bg-black/40">
+        {singlePreviewImage(originalUrl, `Original ${job.file.name}`)}
+      </div>
+    </div>
+  ) : (
+    <div className="flex min-h-0 flex-1 items-center justify-center px-6 text-center text-[0.9rem] text-muted">
+      <p>Waiting for the original preview.</p>
+    </div>
+  );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-border border-b px-4 py-3">
-        <div className="flex min-w-0 flex-wrap items-center gap-2 text-[0.85rem]">
-          <Icon className="text-muted" icon="hugeicons:image-02" width={15} />
-          <span className="max-w-[18rem] truncate font-semibold text-text">
-            {job.file.name}
-          </span>
-          <span className="whitespace-nowrap text-muted">
-            {formatBytes(job.file.size)}
-          </span>
-          {job.output && (
-            <>
-              <Icon
-                className="text-muted/50"
-                icon="hugeicons:arrow-right-01"
-                width={13}
-              />
-              <span className="whitespace-nowrap text-muted">
-                {formatBytes(job.output.size)}
-              </span>
-              {ratio !== null && (
-                <span className="whitespace-nowrap font-semibold text-success">
-                  -{ratio}%
-                </span>
-              )}
-            </>
-          )}
-        </div>
-
-        {job.output && (
-          <div className="flex overflow-hidden rounded-[0.5rem] border border-border">
-            <button
-              className={`px-3 py-1.5 font-medium text-[0.78rem] transition ${
-                view === "original"
-                  ? "bg-white/8 text-text"
-                  : "bg-transparent text-muted hover:bg-white/5"
-              }`}
-              onClick={() => setView("original")}
-              type="button"
-            >
-              Original
-            </button>
-            <button
-              className={`px-3 py-1.5 font-medium text-[0.78rem] transition ${
-                view === "compressed"
-                  ? "bg-white/8 text-text"
-                  : "bg-transparent text-muted hover:bg-white/5"
-              }`}
-              onClick={() => setView("compressed")}
-              type="button"
-            >
-              Compressed
-            </button>
-          </div>
-        )}
-      </div>
-
-      <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-[repeating-conic-gradient(rgba(255,255,255,0.03)_0%_25%,transparent_0%_50%)] p-4 [background-size:20px_20px]">
-        {showUrl ? (
-          <img
-            alt={`${view === "compressed" ? "Compressed" : "Original"} ${job.file.name}`}
-            className="max-h-full max-w-full rounded-[0.4rem] object-contain"
-            height={previewSize.height}
-            src={showUrl}
-            width={previewSize.width}
-          />
-        ) : (
-          <div className="flex flex-1 flex-col items-center justify-center gap-2 text-[0.9rem] text-muted opacity-60">
-            {job.status === "processing" ? (
+      <div className="flex shrink-0 flex-wrap items-start justify-between gap-4 border-border border-b px-4 py-3">
+        <div className="space-y-1">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 text-[0.85rem]">
+            <Icon className="text-muted" icon="hugeicons:image-02" width={15} />
+            <span className="max-w-[20rem] truncate font-semibold text-[0.95rem] text-text">
+              {job.file.name}
+            </span>
+            <span className="whitespace-nowrap text-muted">
+              {formatBytes(job.file.size)}
+            </span>
+            {activeVariant?.output && (
               <>
                 <Icon
-                  className="animate-spin text-text"
-                  icon="hugeicons:loading-03"
-                  width={24}
+                  className="text-muted/50"
+                  icon="hugeicons:arrow-right-01"
+                  width={13}
                 />
-                <p>Compressing…</p>
+                <span className="whitespace-nowrap text-muted">
+                  {formatBytes(activeVariant.output.size)}
+                </span>
               </>
-            ) : (
-              <p>Waiting for compression</p>
             )}
           </div>
+          <p className={`text-[0.82rem] leading-6 ${activeSummary.tone}`}>
+            {activeSummary.text}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex overflow-hidden rounded-[0.5rem] border border-border">
+            {(["compare", "inspect"] as const).map((currentMode) => (
+              <button
+                className={`px-3 py-1.5 font-medium text-[0.78rem] transition ${
+                  mode === currentMode
+                    ? "bg-white/8 text-text"
+                    : "bg-transparent text-muted hover:bg-white/5"
+                }`}
+                key={currentMode}
+                onClick={() => setMode(currentMode)}
+                type="button"
+              >
+                {currentMode === "compare" ? "Compare" : "Inspect"}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-border border-b px-4 py-3">
+        <button
+          className={`inline-flex items-center gap-2 rounded-[0.55rem] border px-3 py-1.5 text-left text-[0.78rem] transition ${
+            job.activeVariantId === null
+              ? "border-emerald-400/35 bg-emerald-400/10 text-text"
+              : "border-border bg-transparent text-muted hover:bg-white/4"
+          }`}
+          onClick={() => onSelectVariant(null)}
+          type="button"
+        >
+          <span className="font-medium">Original</span>
+          <span className="text-white/45">Default</span>
+        </button>
+
+        {job.variants
+          .slice()
+          .sort((a, b) => b.createdAt - a.createdAt)
+          .map((variant) => {
+            const isBest = bestVariant?.id === variant.id;
+            const isLatest = latestVariant?.id === variant.id;
+            let variantTone =
+              "border-border bg-transparent text-muted hover:bg-white/4";
+
+            if (job.activeVariantId === variant.id) {
+              if (variant.status === "larger-than-original") {
+                variantTone = "border-amber-400/40 bg-amber-400/10 text-text";
+              } else if (variant.status === "error") {
+                variantTone = "border-rose-400/40 bg-rose-400/10 text-text";
+              } else {
+                variantTone =
+                  "border-emerald-400/35 bg-emerald-400/10 text-text";
+              }
+            }
+
+            return (
+              <button
+                className={`inline-flex items-center gap-2 rounded-[0.55rem] border px-3 py-1.5 text-left text-[0.78rem] transition ${variantTone}`}
+                key={variant.id}
+                onClick={() => onSelectVariant(variant.id)}
+                type="button"
+              >
+                <span className="font-medium">
+                  {formatLabel(variant.format)}
+                </span>
+                {isBest && <span className="text-emerald-300">Best</span>}
+                {!isBest && isLatest && (
+                  <span className="text-white/45">Latest</span>
+                )}
+                {variant.status === "larger-than-original" && (
+                  <span className="text-[0.72rem] text-amber-300">Larger</span>
+                )}
+                {variant.status === "processing" && (
+                  <span className="text-[0.72rem] text-white/45">Working</span>
+                )}
+              </button>
+            );
+          })}
+      </div>
+
+      <div className="flex min-h-0 flex-1 overflow-hidden bg-[repeating-conic-gradient(rgba(255,255,255,0.03)_0%_25%,transparent_0%_50%)] [background-size:20px_20px]">
+        {mode === "compare" ? (
+          (compareContent ?? compareFallback)
+        ) : (
+          <TransformWrapper
+            centerOnInit
+            doubleClick={{ disabled: true }}
+            minScale={1}
+          >
+            {({ resetTransform, zoomIn, zoomOut }) => (
+              <div className="flex h-full min-h-0 flex-1 flex-col">
+                <div className="flex shrink-0 items-center justify-end gap-2 border-border border-b px-3 py-2">
+                  <button
+                    className="rounded-[0.5rem] border border-border bg-white/4 px-2.5 py-1.5 text-[0.78rem] text-text"
+                    onClick={() => zoomOut()}
+                    type="button"
+                  >
+                    -
+                  </button>
+                  <button
+                    className="rounded-[0.5rem] border border-border bg-white/4 px-2.5 py-1.5 text-[0.78rem] text-text"
+                    onClick={() => resetTransform()}
+                    type="button"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    className="rounded-[0.5rem] border border-border bg-white/4 px-2.5 py-1.5 text-[0.78rem] text-text"
+                    onClick={() => zoomIn()}
+                    type="button"
+                  >
+                    +
+                  </button>
+                </div>
+                <TransformComponent
+                  contentClass="!h-full !w-full"
+                  wrapperClass="!h-full !w-full"
+                >
+                  <div className="grid h-full min-h-0 w-full gap-4 p-4 md:grid-cols-2">
+                    <div className="flex min-h-0 flex-col overflow-hidden rounded-[0.85rem] border border-border bg-black/30">
+                      <div className="border-border border-b px-3 py-2 text-[0.78rem] text-white/62">
+                        Original
+                      </div>
+                      <div className="flex min-h-0 flex-1 items-center justify-center p-3">
+                        {originalUrl ? (
+                          <img
+                            alt={`Original ${job.file.name}`}
+                            className="max-h-full max-w-full object-contain"
+                            height={1200}
+                            src={originalUrl}
+                            width={1600}
+                          />
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="flex min-h-0 flex-col overflow-hidden rounded-[0.85rem] border border-border bg-black/30">
+                      <div className="border-border border-b px-3 py-2 text-[0.78rem] text-white/62">
+                        {activeVariant?.output
+                          ? `${formatLabel(activeVariant.format)} version`
+                          : "No smaller version yet"}
+                      </div>
+                      <div className="flex min-h-0 flex-1 items-center justify-center p-3">
+                        {activeOutputUrl ? (
+                          <img
+                            alt={`Compressed ${job.file.name}`}
+                            className="max-h-full max-w-full object-contain"
+                            height={1200}
+                            src={activeOutputUrl}
+                            width={1600}
+                          />
+                        ) : (
+                          <p className="max-w-[20rem] text-center text-[0.88rem] text-muted">
+                            Nothing smaller to inspect yet. The original is
+                            still doing the job.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </TransformComponent>
+              </div>
+            )}
+          </TransformWrapper>
         )}
       </div>
     </div>

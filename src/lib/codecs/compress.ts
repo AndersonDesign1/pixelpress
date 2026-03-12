@@ -1,22 +1,53 @@
-import type { CompressionSettings, OutputFormat } from "../utils/types";
+import type {
+  CompressionSettings,
+  CompressionStrategy,
+  OutputFormat,
+} from "../utils/types";
+
+async function encodeToPng(imageData: ImageData): Promise<ArrayBuffer> {
+  const { encode } = await import("@jsquash/png");
+  return encode(imageData);
+}
+
+async function optimisePng(
+  data: ArrayBuffer,
+  level: number
+): Promise<ArrayBuffer> {
+  const { optimise } = await import("@jsquash/oxipng");
+  return optimise(data, {
+    interlace: false,
+    level,
+    optimiseAlpha: true,
+  });
+}
 
 export async function compressImageData(
   imageData: ImageData,
-  settings: CompressionSettings
+  settings: CompressionSettings & { format: OutputFormat },
+  strategy: CompressionStrategy
 ): Promise<ArrayBuffer> {
-  const format = settings.format as OutputFormat;
+  const format = settings.format;
+
+  if (strategy === "oxipng") {
+    const pngBuffer = await encodeToPng(imageData);
+    return optimisePng(pngBuffer, settings.lossless ? 4 : 2);
+  }
+
+  if (strategy === "png-encode" || format === "png") {
+    const pngBuffer = await encodeToPng(imageData);
+    return optimisePng(pngBuffer, settings.lossless ? 3 : 2);
+  }
 
   if (format === "webp") {
     const { encode } = await import("@jsquash/webp");
-    let nearLossless = 0;
-    if (settings.lossless || settings.quality > 90) {
-      nearLossless = 100;
-    }
-
     return encode(imageData, {
-      quality: settings.lossless ? 100 : settings.quality,
-      near_lossless: nearLossless,
       exact: 0,
+      near_lossless:
+        strategy === "webp-lossless" || settings.lossless ? 100 : 0,
+      quality:
+        strategy === "webp-lossless" || settings.lossless
+          ? 100
+          : settings.quality,
     });
   }
 
@@ -28,15 +59,17 @@ export async function compressImageData(
     });
   }
 
-  if (format === "png") {
-    const { encode } = await import("@jsquash/png");
-    return encode(imageData);
-  }
-
   const { encode } = await import("@jsquash/jpeg");
   return encode(imageData, {
-    quality: settings.quality,
     baseline: false,
     optimize_coding: true,
+    quality: settings.quality,
   });
+}
+
+export function optimiseSourcePng(
+  sourceBuffer: ArrayBuffer,
+  lossless: boolean
+): Promise<ArrayBuffer> {
+  return optimisePng(sourceBuffer, lossless ? 4 : 2);
 }

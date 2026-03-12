@@ -1,10 +1,9 @@
 ---
 version: "v0.1.1"
 date: "2026-03-12"
-summary: "UX and reliability improvements"
+summary: "A steadier build"
 ---
 
-- Improved progress feedback.
-- Fixed preview and worker cleanup issues.
-- Made exports and filenames more reliable.
-
+- Smoothed out progress feedback.
+- Fixed preview cleanup and worker cleanup.
+- Made filenames and exports more dependable.

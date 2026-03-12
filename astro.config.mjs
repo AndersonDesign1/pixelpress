@@ -13,6 +13,7 @@ export default defineConfig({
       exclude: [
         "@jsquash/avif",
         "@jsquash/jpeg",
+        "@jsquash/oxipng",
         "@jsquash/png",
         "@jsquash/webp",
       ],

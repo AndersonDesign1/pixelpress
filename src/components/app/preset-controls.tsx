@@ -1,4 +1,6 @@
 import { Icon } from "@iconify/react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { presets } from "../../lib/utils/presets";
 import type {
   CompressionSettings,
   FormatPreference,
@@ -6,10 +8,13 @@ import type {
 } from "../../lib/utils/types";
 
 interface ToolbarControlsProps {
+  activePresetId: string | null;
   hasCompleted: boolean;
   hasJobs: boolean;
-  hasSelectedOutput: boolean;
+  hasSelection: boolean;
   isProcessing: boolean;
+  onApplyPreset: (presetId: string) => void;
+  onApplySettings: (settings: CompressionSettings) => void;
   onChange: (settings: CompressionSettings) => void;
   onClear: () => void;
   onDownloadSelected: () => void;
@@ -18,142 +23,281 @@ interface ToolbarControlsProps {
   sourceFormat: OutputFormat | null;
 }
 
-const formats: { value: FormatPreference; label: string }[] = [
-  { value: "original", label: "Original" },
-  { value: "png", label: "PNG" },
-  { value: "jpeg", label: "JPEG" },
-  { value: "webp", label: "WebP" },
-  { value: "avif", label: "AVIF" },
+const formats: { label: string; value: FormatPreference }[] = [
+  { label: "Original", value: "original" },
+  { label: "PNG", value: "png" },
+  { label: "JPEG", value: "jpeg" },
+  { label: "WebP", value: "webp" },
+  { label: "AVIF", value: "avif" },
 ];
 
 export function ToolbarControls({
-  settings,
+  activePresetId,
+  hasCompleted,
+  hasJobs,
+  hasSelection,
+  isProcessing,
+  onApplyPreset,
+  onApplySettings,
   onChange,
+  onClear,
   onDownloadSelected,
   onDownloadZip,
-  onClear,
-  isProcessing,
-  hasJobs,
-  hasCompleted,
-  hasSelectedOutput,
+  settings,
   sourceFormat,
 }: ToolbarControlsProps) {
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const activeFormat =
     settings.format === "original" ? sourceFormat : settings.format;
   const losslessSupported = activeFormat === "png" || activeFormat === "webp";
-
+  const selectedPreset = useMemo(
+    () => presets.find((preset) => preset.id === activePresetId) ?? null,
+    [activePresetId]
+  );
+  const showingCustomSettings = !selectedPreset;
   const toolbarButtonClass =
-    "inline-flex items-center gap-1.5 rounded-[0.55rem] border border-border bg-white/4 px-3 py-1.5 text-[0.82rem] font-medium text-muted-strong whitespace-nowrap hover:border-border-strong hover:bg-white/8";
+    "inline-flex items-center gap-1.5 whitespace-nowrap rounded-[0.55rem] border border-border bg-white/4 px-3 py-1.5 font-medium text-[0.82rem] text-muted-strong hover:border-border-strong hover:bg-white/8";
+
+  useEffect(() => {
+    function handlePointerDown(event: PointerEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+
+    if (menuOpen) {
+      window.addEventListener("pointerdown", handlePointerDown);
+    }
+
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [menuOpen]);
 
   return (
-    <div className="flex flex-wrap items-center gap-2.5 border-border border-t bg-black/85 px-3 py-2.5 backdrop-blur-xl">
-      <div className="flex items-center gap-2">
-        <span className="whitespace-nowrap text-[0.78rem] text-muted">
-          Format
-        </span>
-        <div className="flex overflow-hidden rounded-[0.5rem] border border-border">
-          {formats.map((fmt) => (
-            <button
-              className={`border-border border-r px-3 py-1.5 font-semibold text-[0.78rem] transition last:border-r-0 ${
-                settings.format === fmt.value
-                  ? "bg-accent-soft text-text"
-                  : "bg-transparent text-muted hover:bg-white/5"
-              }`}
-              key={fmt.value}
-              onClick={() =>
-                onChange({
-                  ...settings,
-                  format: fmt.value,
-                  lossless:
-                    fmt.value === "png" || fmt.value === "webp"
-                      ? settings.lossless
-                      : false,
-                })
-              }
-              type="button"
-            >
-              {fmt.label}
-            </button>
-          ))}
+    <div className="grid gap-2 border-border border-t bg-black/85 px-3 py-2.5 backdrop-blur-xl">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <div className="relative flex items-center gap-2" ref={menuRef}>
+          <span className="whitespace-nowrap text-[0.72rem] text-white/42 uppercase tracking-[0.12em]">
+            Quick setup
+          </span>
+          <button
+            aria-expanded={menuOpen}
+            className={`inline-flex min-w-[11rem] items-center justify-between gap-3 rounded-[0.65rem] border px-3 py-2 text-left transition ${
+              menuOpen
+                ? "border-border-strong bg-white/8 text-text"
+                : "border-border bg-white/[0.03] text-text hover:border-border-strong hover:bg-white/6"
+            }`}
+            onClick={() => setMenuOpen((current) => !current)}
+            type="button"
+          >
+            <span className="flex flex-col">
+              <span className="font-medium text-[0.82rem]">
+                {selectedPreset?.label ?? "Choose a setup"}
+              </span>
+              <span className="text-[0.72rem] text-white/45">
+                {selectedPreset?.description ??
+                  "Open Fine tune for custom settings"}
+              </span>
+            </span>
+            <Icon
+              className={`shrink-0 text-white/55 transition duration-200 ${menuOpen ? "rotate-180" : ""}`}
+              icon="hugeicons:arrow-down-01"
+              width={16}
+            />
+          </button>
+
+          <div
+            className={`absolute bottom-full left-[5.6rem] z-20 mb-2 w-[18rem] origin-bottom rounded-[0.85rem] border border-border bg-[#0d0d0d]/96 p-1.5 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition duration-200 ${menuOpen ? "pointer-events-auto translate-y-0 opacity-100" : "pointer-events-none translate-y-1 opacity-0"}`}
+          >
+            {presets.map((preset) => (
+              <button
+                className={`flex w-full flex-col rounded-[0.65rem] px-3 py-2 text-left transition ${
+                  selectedPreset?.id === preset.id
+                    ? "bg-emerald-400/10 text-emerald-200"
+                    : "text-text hover:bg-white/6"
+                }`}
+                key={preset.id}
+                onClick={() => {
+                  onApplyPreset(preset.id);
+                  setMenuOpen(false);
+                }}
+                type="button"
+              >
+                <span className="font-medium text-[0.82rem]">
+                  {preset.label}
+                </span>
+                <span className="text-[0.72rem] text-white/45">
+                  {preset.description}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div className="hidden h-6 w-px bg-border md:block" />
-
-      <div className="flex min-w-[180px] flex-1 items-center gap-2 md:max-w-[240px]">
-        <span className="whitespace-nowrap text-[0.78rem] text-muted">
-          Smaller
-        </span>
-        <input
-          className="h-1 flex-1 disabled:opacity-30"
-          disabled={settings.lossless}
-          max={100}
-          min={1}
-          onChange={(event) =>
-            onChange({ ...settings, quality: Number(event.target.value) })
-          }
-          type="range"
-          value={settings.quality}
-        />
-        <span className="whitespace-nowrap text-[0.78rem] text-muted">
-          Faster
-        </span>
-      </div>
-
-      <div className="hidden h-6 w-px bg-border md:block" />
-
-      <label className="inline-flex cursor-pointer items-center gap-1.5 text-[0.78rem] text-muted">
-        <input
-          checked={settings.lossless}
-          className="size-[14px] cursor-pointer"
-          disabled={!losslessSupported}
-          onChange={(event) =>
-            onChange({ ...settings, lossless: event.target.checked })
-          }
-          type="checkbox"
-        />
-        <Icon icon="hugeicons:lossless" width={14} />
-        Lossless
-      </label>
-
-      {!losslessSupported && (
-        <span className="text-[0.72rem] text-muted">
-          Lossless is available for PNG and WebP outputs.
-        </span>
-      )}
-
-      <div className="ml-auto flex items-center gap-2">
-        {hasSelectedOutput && (
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <button
+            className={`${toolbarButtonClass} ${advancedOpen ? "border-border-strong bg-white/8 text-text" : ""}`}
+            onClick={() => setAdvancedOpen((current) => !current)}
+            type="button"
+          >
+            <Icon icon="hugeicons:settings-02" width={15} />
+            Fine tune
+          </button>
           <button
             className={toolbarButtonClass}
+            disabled={!hasSelection || isProcessing}
             onClick={onDownloadSelected}
-            title="Download selected"
             type="button"
           >
             <Icon icon="hugeicons:download-04" width={15} />
-            Download
+            Download selected
           </button>
-        )}
-        {hasCompleted && (
           <button
             className={toolbarButtonClass}
+            disabled={!hasCompleted}
             onClick={onDownloadZip}
-            title="Download all as .zip"
             type="button"
           >
             <Icon icon="hugeicons:archive" width={15} />
-            .zip
+            Best zip
           </button>
-        )}
-        <button
-          className={toolbarButtonClass}
-          disabled={isProcessing || !hasJobs}
-          onClick={onClear}
-          title="Clear queue"
-          type="button"
-        >
-          <Icon icon="hugeicons:delete-02" width={15} />
-        </button>
+          <button
+            className={toolbarButtonClass}
+            disabled={isProcessing || !hasJobs}
+            onClick={onClear}
+            type="button"
+          >
+            <Icon icon="hugeicons:delete-02" width={15} />
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <div
+        className={`grid overflow-hidden rounded-[0.85rem] border transition-[grid-template-rows,opacity,transform,border-color,padding] duration-200 ease-[var(--ease-fluid)] ${
+          advancedOpen
+            ? "grid-rows-[1fr] border-border bg-white/[0.02] opacity-100"
+            : "grid-rows-[0fr] border-transparent bg-transparent opacity-0"
+        }`}
+      >
+        <div className="min-h-0">
+          <div
+            className={`grid gap-3 px-3 transition-[padding,transform] duration-200 ease-[var(--ease-fluid)] ${
+              advancedOpen ? "translate-y-0 py-3" : "-translate-y-1 py-0"
+            }`}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[0.72rem] text-white/42 uppercase tracking-[0.12em]">
+                  Fine tune
+                </span>
+                {showingCustomSettings ? (
+                  <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[0.7rem] text-white/52">
+                    Custom
+                  </span>
+                ) : null}
+              </div>
+              <p className="text-[0.74rem] text-white/45">
+                Change format or quality when you want something specific.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="whitespace-nowrap text-[0.78rem] text-muted">
+                  Format
+                </span>
+                <div className="flex overflow-hidden rounded-[0.5rem] border border-border">
+                  {formats.map((format) => {
+                    const nextSettings: CompressionSettings = {
+                      ...settings,
+                      format: format.value,
+                      lossless:
+                        format.value === "png" || format.value === "webp"
+                          ? settings.lossless
+                          : false,
+                    };
+
+                    return (
+                      <button
+                        className={`border-border border-r px-3 py-1.5 font-semibold text-[0.78rem] transition last:border-r-0 ${
+                          settings.format === format.value
+                            ? "bg-accent-soft text-text"
+                            : "bg-transparent text-muted hover:bg-white/5"
+                        }`}
+                        key={format.value}
+                        onClick={() => onChange(nextSettings)}
+                        type="button"
+                      >
+                        {format.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex min-w-[220px] flex-1 items-center gap-2 md:max-w-[320px]">
+                <span className="whitespace-nowrap text-[0.78rem] text-muted">
+                  Smaller file
+                </span>
+                <input
+                  className="h-1 flex-1 disabled:opacity-30"
+                  disabled={settings.lossless}
+                  max={100}
+                  min={1}
+                  onChange={(event) =>
+                    onChange({
+                      ...settings,
+                      quality: Number(event.target.value),
+                    })
+                  }
+                  type="range"
+                  value={settings.quality}
+                />
+                <span className="whitespace-nowrap text-[0.78rem] text-muted">
+                  Better detail
+                </span>
+              </div>
+
+              <label className="inline-flex cursor-pointer items-center gap-1.5 text-[0.78rem] text-muted">
+                <input
+                  checked={settings.lossless}
+                  className="size-[14px] cursor-pointer"
+                  disabled={!losslessSupported}
+                  onChange={(event) => {
+                    const nextSettings = {
+                      ...settings,
+                      lossless: event.target.checked,
+                    };
+                    onChange(nextSettings);
+                  }}
+                  type="checkbox"
+                />
+                <Icon icon="hugeicons:lossless" width={14} />
+                Lossless
+              </label>
+
+              <button
+                className={toolbarButtonClass}
+                disabled={!hasSelection || isProcessing}
+                onClick={() => onApplySettings(settings)}
+                type="button"
+              >
+                <Icon icon="hugeicons:refresh" width={15} />
+                Apply changes
+              </button>
+            </div>
+
+            {losslessSupported ? null : (
+              <p className="text-[0.74rem] text-white/45">
+                Lossless only works for PNG and WebP outputs.
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

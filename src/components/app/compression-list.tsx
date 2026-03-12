@@ -1,5 +1,9 @@
 import { Icon } from "@iconify/react";
-import { formatBytes } from "../../lib/utils/format";
+import {
+  formatBytes,
+  formatLabel,
+  savingsPercent,
+} from "../../lib/utils/format";
 import type { CompressionJob } from "../../lib/utils/types";
 
 interface CompressionListProps {
@@ -8,12 +12,8 @@ interface CompressionListProps {
   selectedId: string | null;
 }
 
-function statusIcon(status: string) {
+function statusIcon(status: CompressionJob["status"]) {
   switch (status) {
-    case "queued":
-      return (
-        <Icon className="text-muted" icon="hugeicons:time-02" width={14} />
-      );
     case "processing":
       return (
         <Icon
@@ -35,21 +35,23 @@ function statusIcon(status: string) {
         <Icon className="text-error" icon="hugeicons:alert-circle" width={14} />
       );
     default:
-      return null;
+      return (
+        <Icon className="text-muted" icon="hugeicons:image-02" width={14} />
+      );
   }
 }
 
 export function CompressionList({
   jobs,
-  selectedId,
   onSelect,
+  selectedId,
 }: CompressionListProps) {
-  if (jobs.length === 0) {
+  if (!jobs.length) {
     return null;
   }
 
   return (
-    <aside className="flex w-full shrink-0 flex-col border-border border-b bg-white/[0.018] md:w-[260px] md:border-r md:border-b-0">
+    <aside className="flex w-full shrink-0 flex-col border-border border-b bg-white/[0.018] md:w-[280px] md:border-r md:border-b-0">
       <div className="flex items-center justify-between border-border border-b px-4 py-3">
         <span className="font-semibold text-[0.78rem] text-muted uppercase tracking-[0.12em]">
           Files
@@ -60,10 +62,38 @@ export function CompressionList({
       </div>
       <div className="flex-1 overflow-y-auto p-1.5">
         {jobs.map((job) => {
-          const ratio = job.output
-            ? Math.round((1 - job.output.size / job.file.size) * 100)
-            : null;
+          const bestVariant =
+            job.bestVariantId === null
+              ? null
+              : (job.variants.find(
+                  (variant) => variant.id === job.bestVariantId
+                ) ?? null);
+          const latestVariant = job.variants.at(-1) ?? null;
           const active = selectedId === job.id;
+          const variantCount = job.variants.length;
+
+          let summary = "Original is still the smallest.";
+          let summaryClassName = "text-white/62";
+          if (
+            bestVariant &&
+            bestVariant.sizeDelta !== null &&
+            bestVariant.sizeDelta < 0
+          ) {
+            summary = `Best ${formatLabel(bestVariant.format)} saves ${savingsPercent(
+              bestVariant.sizeDelta,
+              job.file.size
+            )}%`;
+            summaryClassName = "text-emerald-300";
+          } else if (latestVariant?.status === "processing") {
+            summary = `Trying ${formatLabel(latestVariant.format)}...`;
+            summaryClassName = "text-sky-300";
+          } else if (latestVariant?.status === "larger-than-original") {
+            summary = "Latest try came out larger.";
+            summaryClassName = "text-amber-300";
+          } else if (job.status === "error") {
+            summary = "This image needs another try.";
+            summaryClassName = "text-rose-300";
+          }
 
           return (
             <button
@@ -83,12 +113,18 @@ export function CompressionList({
                 </span>
               </div>
 
-              <div className="flex gap-2 pl-6 text-[0.75rem] text-muted">
+              <div className="flex items-center gap-2 pl-6 text-[0.75rem] text-muted">
                 <span>{formatBytes(job.file.size)}</span>
-                {job.output && ratio !== null && (
-                  <span className="font-semibold text-success">-{ratio}%</span>
-                )}
+                <span>
+                  {variantCount} version{variantCount === 1 ? "" : "s"}
+                </span>
               </div>
+
+              <p
+                className={`pl-6 text-[0.73rem] leading-[1.4] ${summaryClassName}`}
+              >
+                {summary}
+              </p>
 
               {job.error ? (
                 <p className="pl-6 text-[0.73rem] text-error leading-[1.35]">
@@ -96,11 +132,11 @@ export function CompressionList({
                 </p>
               ) : null}
 
-              {job.status === "processing" && (
+              {job.status === "processing" && latestVariant && (
                 <div className="mt-1 ml-6 h-0.5 overflow-hidden rounded-full bg-white/8">
                   <div
                     className="h-full rounded-full bg-[linear-gradient(90deg,#999,#ccc)] transition-[width] duration-200 ease-out"
-                    style={{ width: `${job.progress}%` }}
+                    style={{ width: `${latestVariant.progress}%` }}
                   />
                 </div>
               )}
