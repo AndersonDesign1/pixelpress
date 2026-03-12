@@ -18,20 +18,22 @@ const renderedEntries = await Promise.all(
   title="Changelog — PixelPress"
   description="Product and release updates for PixelPress."
 >
-  <section class="page-stack">
-    <div class="page-copy" data-reveal-group="hero">
-      <p class="section-label" data-reveal>Release notes</p>
-      <h1 class="page-title" data-reveal>
+  <section class="grid gap-[clamp(1.8rem,3vw,2.6rem)] pt-[clamp(3rem,6vw,5rem)] pb-[clamp(3rem,7vw,6rem)]">
+    <div class="max-w-[46rem]" data-reveal-group="hero">
+      <p class="inline-flex items-center gap-[0.45rem] text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/72 before:h-px before:w-[1.8rem] before:bg-white/28 before:content-['']" data-reveal>
+        Release notes
+      </p>
+      <h1 class="mt-4 max-w-[16ch] font-display text-[clamp(2.4rem,5vw,4rem)] leading-[0.96] tracking-[-0.06em] text-text" data-reveal>
         Shipping it in public, fixing it in public.
       </h1>
-      <p class="page-intro" data-reveal>
+      <p class="mt-4 max-w-[38rem] text-[clamp(0.95rem,1.3vw,1.05rem)] leading-[1.74] text-white/56" data-reveal>
         This is the running log for PixelPress. The updates are mostly about
         stability, workflow sharpness, and getting the rough edges out of a tool
         that is meant to stay lightweight.
       </p>
-      <div class="action-row" data-reveal>
+      <div class="mt-8 flex flex-wrap gap-3" data-reveal>
         <a
-          class="button-secondary"
+          class="inline-flex min-h-[2.95rem] items-center justify-center rounded-full border border-white/8 bg-white/2 px-4 text-[0.88rem] font-semibold text-text hover:-translate-y-px hover:border-white/12 hover:bg-white/6"
           href={SITE_REPO_URL}
           target="_blank"
           rel="noreferrer"
@@ -39,7 +41,7 @@ const renderedEntries = await Promise.all(
           Follow the repo
         </a>
         <a
-          class="button-tertiary"
+          class="inline-flex min-h-[2.95rem] items-center justify-center rounded-full border border-white/8 bg-white/2 px-4 text-[0.88rem] font-semibold text-text hover:-translate-y-px hover:border-white/12 hover:bg-white/6"
           href={SITE_ISSUES_URL}
           target="_blank"
           rel="noreferrer"
@@ -48,13 +50,22 @@ const renderedEntries = await Promise.all(
         </a>
       </div>
     </div>
-    <div class="timeline-list" data-reveal-group="scroll">
+
+    <div class="grid gap-4" data-reveal-group="scroll">
       {renderedEntries.map((entry) => (
-        <article class="timeline-entry surface-panel" data-reveal key={entry.id}>
-          <p class="timeline-meta">{entry.data.version} · {entry.data.date.toISOString().slice(0, 10)}</p>
-          <h2 class="timeline-title">{entry.data.summary}</h2>
-          <div class="timeline-body">
-          <entry.Content />
+        <article
+          class="grid gap-3 rounded-[1.2rem] border border-white/6 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.012)),linear-gradient(rgba(9,9,9,0.9),rgba(9,9,9,0.9))] px-[1.35rem] py-[1.3rem] shadow-soft"
+          data-reveal
+          key={entry.id}
+        >
+          <p class="text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-white/70">
+            {entry.data.version} · {entry.data.date.toISOString().slice(0, 10)}
+          </p>
+          <h2 class="font-display text-[1.15rem] tracking-[-0.04em] text-text">
+            {entry.data.summary}
+          </h2>
+          <div class="relative pl-4 before:absolute before:bottom-[0.15rem] before:left-0 before:top-[0.15rem] before:w-px before:bg-white/6 before:content-[''] [&_li]:ml-5 [&_li]:text-white/56 [&_li]:marker:text-white/32 [&_p]:text-white/56 [&_p]:leading-[1.75]">
+            <entry.Content />
           </div>
         </article>
       ))}

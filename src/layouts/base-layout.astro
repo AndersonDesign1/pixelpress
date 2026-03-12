@@ -24,6 +24,11 @@ const nav = [
   { href: "/about", label: "About" },
   { href: "/changelog", label: "Changelog" },
 ];
+
+const navLinkClass =
+  "inline-flex items-center rounded-full px-2.5 py-1.5 text-[0.82rem] font-medium text-white/52 transition hover:text-text";
+const footerLinkClass =
+  "inline-flex items-center text-[0.82rem] font-medium text-white/52 transition hover:text-text";
 ---
 
 <!doctype html>
@@ -41,11 +46,23 @@ const nav = [
       rel="stylesheet"
     >
   </head>
-  <body class="site-body site-body--marketing">
-    <header class="site-header">
-      <div class="container-shell site-header-inner">
-        <a class="site-brand" href="/">
-          <span class="site-brand-badge" aria-hidden="true">
+  <body class="min-h-screen overflow-x-clip bg-bg-deep text-text">
+    <div
+      aria-hidden="true"
+      class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_80%_50%_at_50%_-12%,rgba(255,255,255,0.06),transparent),linear-gradient(rgba(255,255,255,0.014)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.014)_1px,transparent_1px),linear-gradient(#050505,#050505)] [background-position:0_0,0_0,0_0,0_0] [background-size:auto,80px_80px,80px_80px,auto]"
+      style="mask-image: linear-gradient(180deg, rgb(0 0 0 / 0.6), transparent 60%);"
+    ></div>
+
+    <header
+      data-site-header
+      class="sticky top-0 z-20 border-b border-white/5 bg-black/72 backdrop-blur-xl transition-[background-color,border-color,box-shadow] duration-300 ease-out"
+    >
+      <div class="mx-auto flex w-[min(1140px,calc(100%-2rem))] flex-wrap items-center justify-between gap-5 px-0 py-4 md:gap-4">
+        <a class="inline-flex items-center gap-4 no-underline" href="/">
+          <span
+            aria-hidden="true"
+            class="inline-flex size-10 items-center justify-center rounded-[0.85rem] border border-white/9 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)),linear-gradient(rgba(10,10,10,0.9),rgba(10,10,10,0.9))] text-text shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_14px_24px_rgba(0,0,0,0.2)]"
+          >
             <svg
               aria-hidden="true"
               focusable="false"
@@ -60,19 +77,24 @@ const nav = [
               <path d="M9 2L16 6V12L9 16L2 12V6L9 2Z" />
             </svg>
           </span>
-          <span class="site-brand-copy">
-            <span class="site-brand-topline">PixelPress</span>
-            <span class="site-brand-note">
+          <span class="inline-flex flex-col gap-[0.18rem]">
+            <span class="font-display text-base font-bold tracking-[-0.05em] text-text">
+              PixelPress
+            </span>
+            <span class="max-w-[24rem] text-[0.72rem] tracking-[0.015em] text-white/54">
               Local-first batch compression for design-heavy work
             </span>
           </span>
         </a>
-        <nav class="site-nav" aria-label="Primary">
+
+        <nav class="flex flex-wrap justify-start gap-1 sm:justify-end" aria-label="Primary">
           {nav.map((item) => (
             <a
               aria-current={currentPath === item.href ? "page" : undefined}
-              class="site-link"
-              data-active={currentPath === item.href}
+              class:list={[
+                navLinkClass,
+                currentPath === item.href && "text-text",
+              ]}
               href={item.href}
               key={item.href}
             >
@@ -82,25 +104,32 @@ const nav = [
         </nav>
       </div>
     </header>
-    <main class="site-main">
-      <div class="container-shell site-main-shell"><slot /></div>
+
+    <main class="py-0">
+      <div class="mx-auto grid w-[min(1140px,calc(100%-2rem))] gap-[clamp(4rem,8vw,8rem)] px-0 py-0">
+        <slot />
+      </div>
     </main>
-    <footer class="site-footer">
-      <div class="container-shell site-footer-inner">
-        <div class="site-footer-copy-block">
-          <p class="section-label site-footer-label">PixelPress</p>
-          <p class="site-footer-title">
+
+    <footer class="border-t border-white/5 bg-[rgba(7,7,7,0.94)]">
+      <div class="mx-auto flex w-[min(1140px,calc(100%-2rem))] flex-col items-start justify-between gap-6 px-0 py-[1.8rem] pb-[2.6rem] md:flex-row">
+        <div class="max-w-[36rem]">
+          <p class="mb-[0.65rem] inline-flex items-center gap-[0.45rem] text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/72 before:h-px before:w-[1.8rem] before:bg-white/28 before:content-['']">
+            PixelPress
+          </p>
+          <p class="font-display text-[1.08rem] tracking-[-0.03em] text-text">
             Built because batch image work got old.
           </p>
-          <p class="site-footer-copy">
+          <p class="mt-[0.35rem] max-w-[34rem] text-[0.95rem] leading-[1.6] text-white/52">
             PixelPress exists because I wanted one local-first tool for the
             image work that keeps showing up in real projects: exports, handoff
             assets, screenshots, conversions, and batch cleanup.
           </p>
         </div>
-        <div class="site-footer-links">
+
+        <div class="grid gap-2 md:justify-items-end">
           <a
-            class="site-footer-link"
+            class={footerLinkClass}
             href={SITE_REPO_URL}
             target="_blank"
             rel="noreferrer"
@@ -108,7 +137,7 @@ const nav = [
             View source
           </a>
           <a
-            class="site-footer-link"
+            class={footerLinkClass}
             href={SITE_ISSUES_URL}
             target="_blank"
             rel="noreferrer"
@@ -116,7 +145,7 @@ const nav = [
             Raise an issue
           </a>
           <a
-            class="site-footer-link"
+            class={footerLinkClass}
             href={SITE_LICENSE_URL}
             target="_blank"
             rel="noreferrer"
@@ -126,15 +155,27 @@ const nav = [
         </div>
       </div>
     </footer>
+
     <script is:inline>
       const reducedMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)"
       ).matches;
-      const body = document.body;
       const root = document.documentElement;
+      const header = document.querySelector("[data-site-header]");
 
       const syncScrollState = () => {
-        body.dataset.scrolled = window.scrollY > 12 ? "true" : "false";
+        const isScrolled = window.scrollY > 12;
+
+        if (!header) {
+          return;
+        }
+
+        header.classList.toggle("bg-black/90", isScrolled);
+        header.classList.toggle("border-white/10", isScrolled);
+        header.classList.toggle(
+          "shadow-[0_26px_60px_rgba(0,0,0,0.34)]",
+          isScrolled
+        );
       };
 
       syncScrollState();

@@ -40,14 +40,16 @@ const features = [
   title="About — PixelPress"
   description="Why PixelPress exists and what it does."
 >
-  <section class="page-stack">
-    <div class="mk-about" data-reveal-group="hero">
+  <section class="grid gap-[clamp(1.8rem,3vw,2.6rem)] pt-[clamp(3rem,6vw,5rem)]">
+    <div class="grid max-w-[38rem] gap-[clamp(2rem,4vw,4rem)]" data-reveal-group="hero">
       <div>
-        <p class="section-label" data-reveal>About</p>
-        <h1 class="page-title" data-reveal>
+        <p class="inline-flex items-center gap-[0.45rem] text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/72 before:h-px before:w-[1.8rem] before:bg-white/28 before:content-['']" data-reveal>
+          About
+        </p>
+        <h1 class="mt-4 max-w-[16ch] font-display text-[clamp(2.4rem,5vw,4rem)] leading-[0.96] tracking-[-0.06em] text-text" data-reveal>
           I got tired of image tools that break on real batches.
         </h1>
-        <p class="mk-about-text" data-reveal>
+        <p class="mt-4 text-[clamp(0.95rem,1.3vw,1.05rem)] leading-[1.85] text-white/52" data-reveal>
           I work with screenshots, Figma exports, designer handoff assets, and
           product images constantly. Most web compressors either cap uploads,
           gate conversion behind a paywall, or send everything through a hosted
@@ -55,28 +57,55 @@ const features = [
           and web workers&mdash;nothing leaves your machine.
         </p>
       </div>
-      <div class="marketing-link-stack" data-reveal>
-        <a href={SITE_REPO_URL} target="_blank" rel="noreferrer">Source</a>
-        <a href={SITE_ISSUES_URL} target="_blank" rel="noreferrer">Issues</a>
+
+      <div class="flex flex-wrap gap-2" data-reveal>
+        <a
+          class="inline-flex min-h-[2.1rem] items-center rounded-[0.65rem] border border-white/8 bg-white/3 px-3 text-[0.78rem] font-medium text-white/72 hover:border-border-strong hover:bg-white/7 hover:text-text"
+          href={SITE_REPO_URL}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Source
+        </a>
+        <a
+          class="inline-flex min-h-[2.1rem] items-center rounded-[0.65rem] border border-white/8 bg-white/3 px-3 text-[0.78rem] font-medium text-white/72 hover:border-border-strong hover:bg-white/7 hover:text-text"
+          href={SITE_ISSUES_URL}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Issues
+        </a>
       </div>
     </div>
   </section>
 
-  <section class="page-stack">
-    <div class="page-copy" data-reveal-group="scroll">
-      <p class="section-label" data-reveal>Capabilities</p>
-      <h2 class="page-title" data-reveal>What it does.</h2>
+  <section class="grid gap-[clamp(1.8rem,3vw,2.6rem)] pb-[clamp(3rem,7vw,6rem)]">
+    <div class="max-w-[46rem]" data-reveal-group="scroll">
+      <p class="inline-flex items-center gap-[0.45rem] text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/72 before:h-px before:w-[1.8rem] before:bg-white/28 before:content-['']" data-reveal>
+        Capabilities
+      </p>
+      <h2 class="mt-4 max-w-[16ch] font-display text-[clamp(2.4rem,5vw,4rem)] leading-[0.96] tracking-[-0.06em] text-text" data-reveal>
+        What it does.
+      </h2>
     </div>
-    <div class="mk-feature-list" data-reveal-group="scroll">
+
+    <div class="grid gap-0" data-reveal-group="scroll">
       {features.map((feature, index) => (
-        <article class="mk-feature-item" data-reveal>
-          <div class="mk-feature-left">
-            <span class="mk-feature-index">
+        <article
+          class="grid gap-2 border-t border-white/8 py-[clamp(1.2rem,2vw,1.8rem)] md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] md:gap-[clamp(1.5rem,3vw,3rem)]"
+          data-reveal
+        >
+          <div class="flex items-baseline gap-[clamp(1rem,2vw,2rem)]">
+            <span class="shrink-0 text-[0.72rem] font-bold tracking-[0.16em] text-white/30">
               {String(index + 1).padStart(2, "0")}
             </span>
-            <h3 class="mk-feature-title">{feature.title}</h3>
+            <h3 class="font-display text-[clamp(1.1rem,1.8vw,1.4rem)] leading-[1.12] tracking-[-0.04em] text-text">
+              {feature.title}
+            </h3>
           </div>
-          <p class="mk-feature-desc">{feature.description}</p>
+          <p class="text-[0.92rem] leading-[1.65] text-white/44">
+            {feature.description}
+          </p>
         </article>
       ))}
     </div>
