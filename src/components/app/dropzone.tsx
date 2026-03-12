@@ -47,7 +47,7 @@ export function Dropzone({ onFiles, compact = false }: DropzoneProps) {
   if (compact) {
     return (
       <button
-        className="add-more-btn"
+        className="absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-[0.6rem] border border-border bg-white/4 px-3 py-2 font-medium text-[0.82rem] text-muted-strong hover:border-border-strong hover:bg-white/8 data-[dragging=true]:border-text data-[dragging=true]:bg-accent-soft"
         data-dragging={isDragging}
         onClick={() => inputRef.current?.click()}
         onDragLeave={(event) => {
@@ -91,7 +91,7 @@ export function Dropzone({ onFiles, compact = false }: DropzoneProps) {
     <>
       <button
         aria-label="Drop images here or press Enter to select files"
-        className="dropzone-hero"
+        className="m-4 flex flex-1 flex-col items-center justify-center gap-2 rounded-[1.2rem] border border-border border-dashed bg-transparent px-8 py-12 text-center data-[dragging=true]:border-text data-[dragging=true]:bg-white/3"
         data-dragging={isDragging}
         onClick={() => inputRef.current?.click()}
         onDragLeave={(event) => {
@@ -114,26 +114,34 @@ export function Dropzone({ onFiles, compact = false }: DropzoneProps) {
         }}
         type="button"
       >
-        <span className="dropzone-icon">
+        <span className="mb-3 text-muted/55">
           <Icon icon="hugeicons:image-upload" width={56} />
         </span>
 
-        <span className="dropzone-title">Drop images here</span>
-        <span className="dropzone-hint">or paste from clipboard</span>
+        <span className="m-0 font-medium text-[1.2rem] text-text tracking-[-0.01em]">
+          Drop images here
+        </span>
+        <span className="m-0 text-[0.88rem] text-muted">
+          or paste from clipboard
+        </span>
 
-        <span className="dropzone-select-btn">
+        <span className="mt-4 inline-flex items-center gap-2 rounded-[0.75rem] border border-border-strong bg-white/6 px-4 py-2.5 font-medium text-[0.92rem] text-text hover:-translate-y-px hover:bg-white/10">
           <Icon icon="hugeicons:folder-open" width={16} />
           Select Files
-          <span className="shortcut-chip">
+          <span className="ml-1 inline-flex items-center gap-1.5 opacity-90">
             <Icon icon="hugeicons:command" width={15} />
-            <kbd>O</kbd>
+            <kbd className="rounded-[0.35rem] border border-border bg-white/4 px-2 py-0.5 text-[0.82rem] text-muted leading-none">
+              O
+            </kbd>
           </span>
         </span>
 
-        <span className="dropzone-paste-hint">
-          <span className="shortcut-chip">
+        <span className="mt-2 text-[0.78rem] text-white/72">
+          <span className="inline-flex items-center gap-1.5">
             <Icon icon="hugeicons:command" width={15} />
-            <kbd>V</kbd>
+            <kbd className="rounded-[0.35rem] border border-border bg-white/4 px-2 py-0.5 text-[0.82rem] text-white/82 leading-none">
+              V
+            </kbd>
           </span>{" "}
           to paste
         </span>

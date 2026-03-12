@@ -60,9 +60,9 @@ export function PreviewPanel({ job }: PreviewPanelProps) {
 
   if (!job) {
     return (
-      <div className="preview-main">
-        <div className="preview-empty">
-          <Icon className="icon-muted" icon="hugeicons:image-01" width={28} />
+      <div className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col items-center justify-center gap-2 text-[0.9rem] text-muted opacity-60">
+          <Icon className="text-muted" icon="hugeicons:image-01" width={28} />
           <p>Select a file to preview</p>
         </div>
       </div>
@@ -73,41 +73,54 @@ export function PreviewPanel({ job }: PreviewPanelProps) {
     : null;
 
   return (
-    <div className="preview-main">
-      <div className="preview-topbar">
-        <div className="preview-file-info">
-          <Icon className="icon-muted" icon="hugeicons:image-02" width={15} />
-          <span className="preview-filename">{job.file.name}</span>
-          <span className="preview-size">{formatBytes(job.file.size)}</span>
+    <div className="flex flex-1 flex-col">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-border border-b px-4 py-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 text-[0.85rem]">
+          <Icon className="text-muted" icon="hugeicons:image-02" width={15} />
+          <span className="max-w-[18rem] truncate font-semibold text-text">
+            {job.file.name}
+          </span>
+          <span className="whitespace-nowrap text-muted">
+            {formatBytes(job.file.size)}
+          </span>
           {job.output && (
             <>
               <Icon
-                className="icon-muted"
+                className="text-muted/50"
                 icon="hugeicons:arrow-right-01"
                 width={13}
               />
-              <span className="preview-size">
+              <span className="whitespace-nowrap text-muted">
                 {formatBytes(job.output.size)}
               </span>
               {ratio !== null && (
-                <span className="preview-savings">-{ratio}%</span>
+                <span className="whitespace-nowrap font-semibold text-success">
+                  -{ratio}%
+                </span>
               )}
             </>
           )}
         </div>
+
         {job.output && (
-          <div className="preview-toggle">
+          <div className="flex overflow-hidden rounded-[0.5rem] border border-border">
             <button
-              className="preview-toggle-btn"
-              data-active={view === "original"}
+              className={`px-3 py-1.5 font-medium text-[0.78rem] transition ${
+                view === "original"
+                  ? "bg-white/8 text-text"
+                  : "bg-transparent text-muted hover:bg-white/5"
+              }`}
               onClick={() => setView("original")}
               type="button"
             >
               Original
             </button>
             <button
-              className="preview-toggle-btn"
-              data-active={view === "compressed"}
+              className={`px-3 py-1.5 font-medium text-[0.78rem] transition ${
+                view === "compressed"
+                  ? "bg-white/8 text-text"
+                  : "bg-transparent text-muted hover:bg-white/5"
+              }`}
               onClick={() => setView("compressed")}
               type="button"
             >
@@ -117,20 +130,21 @@ export function PreviewPanel({ job }: PreviewPanelProps) {
         )}
       </div>
 
-      <div className="preview-canvas">
+      <div className="flex flex-1 items-center justify-center bg-[repeating-conic-gradient(rgba(255,255,255,0.03)_0%_25%,transparent_0%_50%)] p-4 [background-size:20px_20px]">
         {showUrl ? (
           <img
             alt={`${view === "compressed" ? "Compressed" : "Original"} ${job.file.name}`}
+            className="max-h-full max-w-full rounded-[0.4rem] object-contain"
             height={previewSize.height}
             src={showUrl}
             width={previewSize.width}
           />
         ) : (
-          <div className="preview-empty">
+          <div className="flex flex-1 flex-col items-center justify-center gap-2 text-[0.9rem] text-muted opacity-60">
             {job.status === "processing" ? (
               <>
                 <Icon
-                  className="spin icon-accent"
+                  className="animate-spin text-text"
                   icon="hugeicons:loading-03"
                   width={24}
                 />

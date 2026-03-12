@@ -62,7 +62,6 @@ export default function CompressorApp() {
   const workerRef = useRef<Worker | null>(null);
   const settingsRef = useRef(settings);
 
-  // Keep ref in sync so the auto-compress callback always uses latest settings
   useEffect(() => {
     settingsRef.current = settings;
   }, [settings]);
@@ -149,7 +148,6 @@ export default function CompressorApp() {
     return workerRef.current;
   }
 
-  // Auto-compress: add files and immediately start compression
   function addFiles(files: File[]) {
     const next = files
       .filter((file) => file.type.startsWith("image/"))
@@ -247,12 +245,17 @@ export default function CompressorApp() {
     }
   }
 
-  // Empty state — fullscreen dropzone
   if (!hasJobs) {
     return (
-      <div className="app-shell app-shell--empty">
-        <Dropzone onFiles={addFiles} />
-        {globalError && <p className="app-error">{globalError}</p>}
+      <div className="flex min-h-[calc(100vh-3.5rem)] flex-col">
+        <div className="flex flex-1 flex-col">
+          <Dropzone onFiles={addFiles} />
+        </div>
+        {globalError && (
+          <p className="border-[color:color-mix(in_oklab,var(--color-error)_30%,transparent)] border-t bg-[color:color-mix(in_oklab,var(--color-error)_12%,transparent)] px-4 py-2.5 text-center text-[0.88rem] text-[color:color-mix(in_oklab,var(--color-error)_72%,white_28%)]">
+            {globalError}
+          </p>
+        )}
         <ToolbarControls
           hasCompleted={hasCompleted}
           hasJobs={hasJobs}
@@ -268,21 +271,24 @@ export default function CompressorApp() {
     );
   }
 
-  // Working state — sidebar + preview + toolbar
   return (
-    <div className="app-shell app-shell--working">
-      <div className="app-body">
+    <div className="flex min-h-[calc(100vh-3.5rem)] flex-col">
+      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <CompressionList
           jobs={jobs}
           onSelect={setSelectedId}
           selectedId={selectedId}
         />
-        <div className="app-content">
+        <div className="relative flex min-w-0 flex-1 flex-col">
           <PreviewPanel job={selectedJob} />
           <Dropzone compact onFiles={addFiles} />
         </div>
       </div>
-      {globalError && <p className="app-error">{globalError}</p>}
+      {globalError && (
+        <p className="border-[color:color-mix(in_oklab,var(--color-error)_30%,transparent)] border-t bg-[color:color-mix(in_oklab,var(--color-error)_12%,transparent)] px-4 py-2.5 text-center text-[0.88rem] text-[color:color-mix(in_oklab,var(--color-error)_72%,white_28%)]">
+          {globalError}
+        </p>
+      )}
       <ToolbarControls
         hasCompleted={hasCompleted}
         hasJobs={hasJobs}

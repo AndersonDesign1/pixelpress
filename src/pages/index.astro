@@ -2,8 +2,8 @@
 import "@/styles/global.css";
 import CompressorApp from "@/components/app/compressor-app";
 
-const appNavLinkClass =
-  "inline-flex min-h-[1.8rem] items-center rounded-[0.4rem] px-2.5 text-[0.78rem] font-medium text-muted transition hover:bg-white/5 hover:text-text";
+const headerLinkClass =
+  "inline-flex min-h-8 items-center rounded-md px-2.5 text-sm font-medium text-muted transition-colors duration-200 hover:bg-white/5 hover:text-text";
 ---
 
 <!doctype html>
@@ -27,9 +27,11 @@ const appNavLinkClass =
       rel="stylesheet"
     >
   </head>
-  <body class="min-h-screen bg-bg-deep text-text">
-    <header class="border-b border-border bg-black/90 backdrop-blur-xl">
-      <div class="mx-auto flex w-full max-w-none items-center justify-between gap-4 px-4 py-3 md:px-6">
+  <body class="min-h-screen bg-bg-deep font-body text-text">
+    <header
+      class="border-b border-border bg-[rgb(8_8_8_/_0.9)] backdrop-blur-sm"
+    >
+      <div class="flex items-center justify-between gap-4 px-4 py-2.5">
         <a
           class="inline-flex items-center gap-2 font-display text-[0.95rem] font-bold tracking-[-0.03em] text-text no-underline"
           href="/"
@@ -50,12 +52,12 @@ const appNavLinkClass =
           PixelPress
         </a>
         <nav class="flex items-center gap-1">
-          <a class={appNavLinkClass} href="/about">About</a>
-          <a class={appNavLinkClass} href="/changelog">Changelog</a>
+          <a class={headerLinkClass} href="/about">About</a>
+          <a class={headerLinkClass} href="/changelog">Changelog</a>
         </nav>
       </div>
     </header>
-    <main class="flex min-h-[calc(100vh-3.5rem)] flex-col">
+    <main class="flex min-h-[calc(100vh-3rem)] flex-col">
       <CompressorApp client:only="react" />
     </main>
   </body>
