@@ -1,4 +1,6 @@
 ---
+import { SITE_ISSUES_URL, SITE_REPO_URL } from "@/lib/utils/site";
+
 interface Props {
   subtitle: string;
   title: string;
@@ -7,40 +9,62 @@ interface Props {
 const { title, subtitle } = Astro.props;
 ---
 
-<section class="hero-shell">
-  <div>
-    <p class="section-label">Browser-native image compression</p>
-    <h1 class="page-title hero-title">{title}</h1>
-    <p class="page-intro hero-intro">{subtitle}</p>
-    <div class="action-row mt-8">
-      <a href="/app" class="button-primary">Open Workspace</a>
-      <a href="/features" class="button-secondary">Review Capabilities</a>
+<section class="hero-shell" data-reveal-group="hero">
+  <div class="hero-copy">
+    <p class="section-label" data-reveal>
+      Built for the annoying part of image work
+    </p>
+    <h1 class="page-title hero-title" data-reveal>{title}</h1>
+    <p class="page-intro hero-intro" data-reveal>{subtitle}</p>
+    <ul class="hero-inline-list" data-reveal>
+      <li>No upload caps</li>
+      <li>Batch conversion in one go</li>
+      <li>Everything stays on your machine</li>
+    </ul>
+    <div class="action-row hero-actions" data-reveal>
+      <a href="/" class="button-primary">Open Workspace</a>
+      <a href="/about" class="button-secondary">See What It Covers</a>
+      <a
+        href={SITE_REPO_URL}
+        class="button-tertiary"
+        target="_blank"
+        rel="noreferrer"
+      >
+        Read The Code
+      </a>
     </div>
   </div>
-  <aside class="hero-aside surface-panel">
-    <p class="hero-aside-title">Built for daily asset handling</p>
-    <ul class="hero-list">
-      <li>
-        <span class="hero-list-label">Private by default</span>
+  <aside class="hero-aside surface-panel" data-reveal>
+    <p class="panel-kicker">Why it exists</p>
+    <h2 class="hero-aside-title">
+      Most image tools got weird the moment the batch was real.
+    </h2>
+    <div class="hero-stack">
+      <article class="hero-stack-item">
+        <span class="hero-list-label">Upload caps</span>
         <p>
-          Compression runs locally in the browser, so screenshots and exports
-          never leave the device.
+          I kept running into tools that stopped being useful after a few files
+          or a tiny upload limit.
         </p>
-      </li>
-      <li>
-        <span class="hero-list-label">Quiet workflow</span>
+      </article>
+      <article class="hero-stack-item">
+        <span class="hero-list-label">Developer workflow</span>
         <p>
-          Drop a batch, tune quality, preview the result, and ship a zip without
-          switching tools.
+          I work with screenshots, assets, and exported designs constantly, so I
+          wanted one quiet tool that could handle all of it.
         </p>
-      </li>
-      <li>
-        <span class="hero-list-label">Modern formats</span>
+      </article>
+      <article class="hero-stack-item">
+        <span class="hero-list-label">Open by default</span>
         <p>
-          Keep AVIF, WebP, JPEG, and PNG close at hand without treating the app
-          like a novelty demo.
+          It runs locally, the code is public, and if something breaks you can
+          inspect it or raise an issue.
         </p>
-      </li>
-    </ul>
+      </article>
+    </div>
+    <div class="hero-link-row">
+      <a href={SITE_REPO_URL} target="_blank" rel="noreferrer">Source</a>
+      <a href={SITE_ISSUES_URL} target="_blank" rel="noreferrer">Issues</a>
+    </div>
   </aside>
 </section>

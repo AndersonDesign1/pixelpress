@@ -1,49 +1,52 @@
 ---
-import FeatureGrid from "@/components/marketing/feature-grid.astro";
-import Hero from "@/components/marketing/hero.astro";
-import BaseLayout from "@/layouts/base-layout.astro";
-
-const features = [
-  {
-    title: "Zero upload workflow",
-    description:
-      "Everything runs in your browser using Web Workers and jSquash codecs.",
-  },
-  {
-    title: "Batch ready",
-    description:
-      "Drop a full folder of screenshots and export one or all as a zip archive.",
-  },
-  {
-    title: "Smart presets",
-    description:
-      "Switch quickly between social, blog, high-quality, and modern format presets.",
-  },
-  {
-    title: "AVIF + WebP",
-    description:
-      "Generate modern formats with size-focused defaults for faster pages.",
-  },
-  {
-    title: "Metadata controls",
-    description:
-      "Remove EXIF metadata where possible to reduce bytes and protect privacy.",
-  },
-  {
-    title: "Desktop-first UX",
-    description:
-      "Powerful side-by-side preview optimized for creators and developers.",
-  },
-];
+import "@/styles/global.css";
+import CompressorApp from "@/components/app/compressor-app";
 ---
 
-<BaseLayout
-  title="PixelPress — Premium Browser Image Compressor"
-  description="Compress images locally with modern codecs and a clean, developer-friendly UI."
->
-  <Hero
-    title="Compress images in-browser. Private, fast, and built for modern workflows."
-    subtitle="PixelPress keeps your images on-device with worker-powered jSquash compression, batch processing, and one-click exports."
-  />
-  <FeatureGrid features={features} />
-</BaseLayout>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelPress — Local-first batch image compression</title>
+    <meta
+      name="description"
+      content="Compress images in-browser with format selection, quality control, and zip export. Nothing leaves your machine."
+    >
+    <link
+      rel="canonical"
+      href={new URL(Astro.url.pathname, Astro.site ?? Astro.url).toString()}
+    >
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    >
+  </head>
+  <body class="site-body">
+    <header class="app-header">
+      <a class="app-header-brand" href="/">
+        <svg
+          aria-hidden="true"
+          focusable="false"
+          width="18"
+          height="18"
+          viewBox="0 0 18 18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.2"
+          stroke-linejoin="round"
+        >
+          <path d="M9 2L16 6V12L9 16L2 12V6L9 2Z" />
+        </svg>
+        PixelPress
+      </a>
+      <nav class="app-header-nav">
+        <a class="app-header-link" href="/about">About</a>
+        <a class="app-header-link" href="/changelog">Changelog</a>
+      </nav>
+    </header>
+    <main class="app-main-area"><CompressorApp client:only="react" /></main>
+  </body>
+</html>

@@ -1,5 +1,10 @@
 ---
 import "@/styles/global.css";
+import {
+  SITE_ISSUES_URL,
+  SITE_LICENSE_URL,
+  SITE_REPO_URL,
+} from "@/lib/utils/site";
 
 interface Props {
   description: string;
@@ -16,12 +21,8 @@ const currentPath =
     ? Astro.url.pathname.slice(0, -1)
     : Astro.url.pathname;
 const nav = [
-  { href: "/", label: "Home" },
-  { href: "/features", label: "Features" },
   { href: "/about", label: "About" },
   { href: "/changelog", label: "Changelog" },
-  { href: "/docs", label: "Docs" },
-  { href: "/app", label: "Open App" },
 ];
 ---
 
@@ -40,25 +41,38 @@ const nav = [
       rel="stylesheet"
     >
   </head>
-  <body class="site-body">
+  <body class="site-body site-body--marketing">
     <header class="site-header">
       <div class="container-shell site-header-inner">
         <a class="site-brand" href="/">
-          <span class="site-brand-mark">PixelPress</span>
-          <span class="site-brand-note">Local-first image compression</span>
+          <span class="site-brand-badge" aria-hidden="true">
+            <svg
+              aria-hidden="true"
+              focusable="false"
+              width="18"
+              height="18"
+              viewBox="0 0 18 18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.2"
+              stroke-linejoin="round"
+            >
+              <path d="M9 2L16 6V12L9 16L2 12V6L9 2Z" />
+            </svg>
+          </span>
+          <span class="site-brand-copy">
+            <span class="site-brand-topline">PixelPress</span>
+            <span class="site-brand-note">
+              Local-first batch compression for design-heavy work
+            </span>
+          </span>
         </a>
         <nav class="site-nav" aria-label="Primary">
           {nav.map((item) => (
             <a
-              aria-current={(item.href === '/'
-                ? currentPath === '/'
-                : currentPath === item.href)
-                ? 'page'
-                : undefined}
+              aria-current={currentPath === item.href ? "page" : undefined}
               class="site-link"
-              data-active={item.href === '/'
-                ? currentPath === '/'
-                : currentPath === item.href}
+              data-active={currentPath === item.href}
               href={item.href}
               key={item.href}
             >
@@ -69,22 +83,111 @@ const nav = [
       </div>
     </header>
     <main class="site-main">
-      <div class="container-shell"><slot /></div>
+      <div class="container-shell site-main-shell"><slot /></div>
     </main>
     <footer class="site-footer">
       <div class="container-shell site-footer-inner">
-        <div>
-          <p class="site-footer-title">PixelPress</p>
+        <div class="site-footer-copy-block">
+          <p class="section-label site-footer-label">PixelPress</p>
+          <p class="site-footer-title">
+            Built because batch image work got old.
+          </p>
           <p class="site-footer-copy">
-            Compression stays on-device, exports stay quick, and the workflow
-            stays quiet.
+            PixelPress exists because I wanted one local-first tool for the
+            image work that keeps showing up in real projects: exports, handoff
+            assets, screenshots, conversions, and batch cleanup.
           </p>
         </div>
-        <p class="site-footer-meta">
-          Built with Astro and React for creators who need privacy, speed, and
-          batch-ready output.
-        </p>
+        <div class="site-footer-links">
+          <a
+            class="site-footer-link"
+            href={SITE_REPO_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            View source
+          </a>
+          <a
+            class="site-footer-link"
+            href={SITE_ISSUES_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Raise an issue
+          </a>
+          <a
+            class="site-footer-link"
+            href={SITE_LICENSE_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            MIT license
+          </a>
+        </div>
       </div>
     </footer>
+    <script is:inline>
+      const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+      const body = document.body;
+      const root = document.documentElement;
+
+      const syncScrollState = () => {
+        body.dataset.scrolled = window.scrollY > 12 ? "true" : "false";
+      };
+
+      syncScrollState();
+      window.addEventListener("scroll", syncScrollState, { passive: true });
+
+      if (!reducedMotion) {
+        root.dataset.motion = "enabled";
+
+        const heroItems = Array.from(
+          document.querySelectorAll('[data-reveal-group="hero"] [data-reveal]')
+        );
+
+        for (const [index, item] of heroItems.entries()) {
+          item.style.setProperty("--reveal-delay", `${index * 95}ms`);
+        }
+
+        requestAnimationFrame(() => {
+          for (const item of heroItems) {
+            item.dataset.visible = "true";
+          }
+        });
+
+        const scrollItems = Array.from(
+          document.querySelectorAll(
+            '[data-reveal-group="scroll"] [data-reveal]'
+          )
+        );
+
+        for (const [index, item] of scrollItems.entries()) {
+          item.style.setProperty("--reveal-delay", `${(index % 3) * 80}ms`);
+        }
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) {
+                continue;
+              }
+
+              entry.target.dataset.visible = "true";
+              observer.unobserve(entry.target);
+            }
+          },
+          {
+            threshold: 0.16,
+            rootMargin: "0px 0px -10% 0px",
+          }
+        );
+
+        for (const item of scrollItems) {
+          observer.observe(item);
+        }
+      }
+    </script>
   </body>
 </html>

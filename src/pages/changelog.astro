@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from "astro:content";
 import BaseLayout from "@/layouts/base-layout.astro";
+import { SITE_ISSUES_URL, SITE_REPO_URL } from "@/lib/utils/site";
 
 const entries = (await getCollection("changelog")).sort(
   (a, b) => b.data.date.getTime() - a.data.date.getTime()
@@ -18,17 +19,38 @@ const renderedEntries = await Promise.all(
   description="Product and release updates for PixelPress."
 >
   <section class="page-stack">
-    <div class="page-copy">
-      <p class="section-label">Release notes</p>
-      <h1 class="page-title">Small improvements, documented clearly.</h1>
-      <p class="page-intro">
-        A running log of what changed in the product, with an emphasis on
-        stability, privacy, and workflow quality instead of feature noise.
+    <div class="page-copy" data-reveal-group="hero">
+      <p class="section-label" data-reveal>Release notes</p>
+      <h1 class="page-title" data-reveal>
+        Shipping it in public, fixing it in public.
+      </h1>
+      <p class="page-intro" data-reveal>
+        This is the running log for PixelPress. The updates are mostly about
+        stability, workflow sharpness, and getting the rough edges out of a tool
+        that is meant to stay lightweight.
       </p>
+      <div class="action-row" data-reveal>
+        <a
+          class="button-secondary"
+          href={SITE_REPO_URL}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Follow the repo
+        </a>
+        <a
+          class="button-tertiary"
+          href={SITE_ISSUES_URL}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Report a rough edge
+        </a>
+      </div>
     </div>
-    <div class="timeline-list">
+    <div class="timeline-list" data-reveal-group="scroll">
       {renderedEntries.map((entry) => (
-        <article class="timeline-entry surface-panel" key={entry.id}>
+        <article class="timeline-entry surface-panel" data-reveal key={entry.id}>
           <p class="timeline-meta">{entry.data.version} · {entry.data.date.toISOString().slice(0, 10)}</p>
           <h2 class="timeline-title">{entry.data.summary}</h2>
           <div class="timeline-body">

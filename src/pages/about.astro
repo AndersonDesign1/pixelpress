@@ -1,24 +1,84 @@
 ---
 import BaseLayout from "@/layouts/base-layout.astro";
+import { SITE_ISSUES_URL, SITE_REPO_URL } from "@/lib/utils/site";
+
+const features = [
+  {
+    title: "Drop a full batch",
+    description:
+      "Throw a pile of screenshots or exported assets at it instead of feeding files one by one.",
+  },
+  {
+    title: "Convert formats in the same flow",
+    description:
+      "Switch between JPEG, PNG, WebP, and AVIF inside the same workspace.",
+  },
+  {
+    title: "Preview before exporting",
+    description:
+      "Side-by-side preview to catch bad output quickly instead of trusting blind compression.",
+  },
+  {
+    title: "Presets for speed",
+    description:
+      "Reach for familiar defaults when you just want a decent result and need to keep moving.",
+  },
+  {
+    title: "Zip the whole run",
+    description:
+      "Download a single image or the full output set once the batch is done.",
+  },
+  {
+    title: "Remembers your setup",
+    description:
+      "The app keeps your recent settings locally so repeated image work takes fewer clicks.",
+  },
+];
 ---
 
 <BaseLayout
   title="About — PixelPress"
-  description="About the PixelPress browser image compressor."
+  description="Why PixelPress exists and what it does."
 >
-  <article class="prose-shell surface-panel">
-    <h1>About PixelPress</h1>
-    <p>
-      PixelPress is a static-first Astro app with a focused React compressor
-      experience.
-    </p>
-    <p>
-      We designed it to keep hosting cheap, preserve user privacy, and avoid
-      server-side processing by default.
-    </p>
-    <p>
-      The compression pipeline runs inside browser workers using jSquash codecs
-      so large batches do not block the UI thread.
-    </p>
-  </article>
+  <section class="page-stack">
+    <div class="mk-about" data-reveal-group="hero">
+      <div>
+        <p class="section-label" data-reveal>About</p>
+        <h1 class="page-title" data-reveal>
+          I got tired of image tools that break on real batches.
+        </h1>
+        <p class="mk-about-text" data-reveal>
+          I work with screenshots, Figma exports, designer handoff assets, and
+          product images constantly. Most web compressors either cap uploads,
+          gate conversion behind a paywall, or send everything through a hosted
+          service. PixelPress runs entirely in your browser using jSquash codecs
+          and web workers&mdash;nothing leaves your machine.
+        </p>
+      </div>
+      <div class="marketing-link-stack" data-reveal>
+        <a href={SITE_REPO_URL} target="_blank" rel="noreferrer">Source</a>
+        <a href={SITE_ISSUES_URL} target="_blank" rel="noreferrer">Issues</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-stack">
+    <div class="page-copy" data-reveal-group="scroll">
+      <p class="section-label" data-reveal>Capabilities</p>
+      <h2 class="page-title" data-reveal>What it does.</h2>
+    </div>
+    <div class="mk-feature-list" data-reveal-group="scroll">
+      {features.map((feature, index) => (
+        <article class="mk-feature-item" data-reveal>
+          <div class="mk-feature-left">
+            <span class="mk-feature-index">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <h3 class="mk-feature-title">{feature.title}</h3>
+          </div>
+          <p class="mk-feature-desc">{feature.description}</p>
+        </article>
+      ))}
+    </div>
+  </section>
 </BaseLayout>
