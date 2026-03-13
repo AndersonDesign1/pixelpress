@@ -5,6 +5,9 @@ import { defineConfig } from "astro/config";
 
 export default defineConfig({
   output: "static",
+  redirects: {
+    "/app": "/",
+  },
   integrations: [react()],
   adapter: vercel(),
   vite: {
