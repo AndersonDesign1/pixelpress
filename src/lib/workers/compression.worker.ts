@@ -9,6 +9,7 @@ import {
 } from "../utils/format";
 import type {
   CompressionStrategy,
+  OutputFormat,
   WorkerCompressRequest,
   WorkerCompressResponse,
 } from "../utils/types";
@@ -29,9 +30,7 @@ function postProgress(
   self.postMessage(message);
 }
 
-function mimeTypeForFormat(
-  format: WorkerCompressRequest["settings"]["format"]
-) {
+function mimeTypeForFormat(format: OutputFormat) {
   if (format === "png") {
     return "image/png";
   }
