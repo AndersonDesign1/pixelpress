@@ -1,5 +1,5 @@
 {
-  "name": "img-compression",
+  "name": "pixelpress",
   "version": "0.1.0",
   "type": "module",
   "private": true,
@@ -11,11 +11,12 @@
     "build": "astro build",
     "preview": "astro preview --host 0.0.0.0 --port 4321",
     "check": "ultracite check && astro check",
-    "fix": "ultracite fix"
+    "fix": "ultracite fix",
+    "deploy": "bun run build && wrangler deploy"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^13.1.1",
     "@astrojs/react": "^5.0.0",
-    "@astrojs/vercel": "^10.0.0",
     "@iconify/react": "^6.0.2",
     "@jsquash/avif": "^2.1.1",
     "@jsquash/jpeg": "^1.6.0",
@@ -23,7 +24,7 @@
     "@jsquash/png": "^3.1.1",
     "@jsquash/webp": "^1.5.0",
     "@tailwindcss/vite": "^4.2.1",
-    "astro": "^6.0.2",
+    "astro": "^6.0.4",
     "fflate": "^0.8.2",
     "react": "^19.1.1",
     "react-compare-slider": "^3.1.0",
@@ -35,6 +36,7 @@
     "@astrojs/check": "^0.9.7",
     "@biomejs/biome": "2.4.5",
     "typescript": "^5.9.2",
-    "ultracite": "7.2.5"
+    "ultracite": "7.2.5",
+    "wrangler": "^4.73.0"
   }
 }

@@ -1,15 +1,18 @@
+import cloudflare from "@astrojs/cloudflare";
 import react from "@astrojs/react";
-import vercel from "@astrojs/vercel";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
 
 export default defineConfig({
-  output: "static",
+  site: "https://pixelpress.workers.dev",
+  output: "server",
   redirects: {
     "/app": "/",
   },
   integrations: [react()],
-  adapter: vercel(),
+  adapter: cloudflare({
+    imageService: "compile",
+  }),
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {

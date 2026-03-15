@@ -15,11 +15,11 @@ There is no upload step and no backend doing secret image work somewhere else. T
 
 ## Tech stack
 
-- Astro 6 for the site shell and routes
+- Astro 6 for the site shell and routes (Cloudflare Workers adapter)
 - React 19 for the compression workspace
 - Tailwind CSS v4 for styling
 - Web Workers for codec work
-- Vercel for deployment
+- Cloudflare Workers for deployment
 - Bun for installs and scripts
 
 ## Project shape
@@ -45,6 +45,8 @@ bun run dev
 
 The dev server runs on `http://localhost:4321`.
 
+The default deployment target in this repo is Cloudflare Workers at `https://pixelpress.workers.dev`. If you attach a custom domain, update Astro `site` in `astro.config.mjs` so canonical URLs point at the final hostname.
+
 ## Commands
 
 ```bash
@@ -52,14 +54,16 @@ bun run dev
 bun run check
 bun run build
 bun run preview
+bun run deploy
 ```
 
 ## Notes
 
 - `bun run check` runs both linting and `astro check`
+- `bun run preview` uses Astro's Cloudflare-aware preview runtime after a build
 - Compression stays client-side
 - Last-used settings are stored in `localStorage`
-- SharedArrayBuffer support is enabled in production through COOP/COEP headers in `vercel.json`
+- SharedArrayBuffer support is enabled in production through COOP/COEP headers in Astro middleware (`src/middleware.ts`)
 
 ## Why it exists
 
