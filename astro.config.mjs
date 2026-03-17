@@ -2,6 +2,7 @@ import cloudflare from "@astrojs/cloudflare";
 import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
+import wasm from "vite-plugin-wasm";
 
 export default defineConfig({
   site: "https://pixelpress.workers.dev",
@@ -14,7 +15,7 @@ export default defineConfig({
     imageService: "compile",
   }),
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), wasm()],
     optimizeDeps: {
       exclude: [
         "@jsquash/avif",
@@ -22,6 +23,13 @@ export default defineConfig({
         "@jsquash/oxipng",
         "@jsquash/png",
         "@jsquash/webp",
+        "imagequant",
+        "astro",
+        "astro/runtime/client/dev-toolbar/entrypoint.js",
+        "astro/virtual-modules/transitions-events.js",
+        "astro/virtual-modules/transitions-router.js",
+        "astro/virtual-modules/transitions-swap-functions.js",
+        "astro/virtual-modules/transitions-types.js",
       ],
     },
     build: {
@@ -29,6 +37,7 @@ export default defineConfig({
     },
     worker: {
       format: "es",
+      plugins: () => [wasm()],
     },
   },
 });

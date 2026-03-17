@@ -4,11 +4,10 @@ import {
   ReactCompareSlider,
   ReactCompareSliderHandle,
 } from "react-compare-slider";
-import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import {
   formatBytes,
-  formatLabel,
   savingsPercent,
+  variantFormatLabel,
 } from "../../lib/utils/format";
 import type { CompressionJob, CompressionVariant } from "../../lib/utils/types";
 
@@ -61,28 +60,55 @@ function variantSummary(variant: CompressionVariant, originalSize: number) {
 
   if (variant.sizeDelta > 0) {
     return {
-      text: `${formatLabel(variant.format)} came out ${savingsPercent(
-        variant.sizeDelta,
-        originalSize
-      )}% larger.`,
+      text: `${variantFormatLabel(
+        variant.format,
+        variant.strategy
+      )} came out ${savingsPercent(variant.sizeDelta, originalSize)}% larger.`,
       tone: "text-amber-300",
     };
   }
 
   if (variant.sizeDelta === 0) {
     return {
-      text: `${formatLabel(variant.format)} came out the same size.`,
+      text: `${variantFormatLabel(
+        variant.format,
+        variant.strategy
+      )} came out the same size.`,
       tone: "text-white/62",
     };
   }
 
   return {
-    text: `${formatLabel(variant.format)} saves ${savingsPercent(
-      variant.sizeDelta,
-      originalSize
-    )}%.`,
+    text: `${variantFormatLabel(
+      variant.format,
+      variant.strategy
+    )} saves ${savingsPercent(variant.sizeDelta, originalSize)}%.`,
     tone: "text-emerald-300",
   };
+}
+
+function formatUpgradeHint(
+  job: CompressionJob,
+  variant: CompressionVariant | null
+) {
+  if (
+    !(variant?.output && variant.sizeDelta !== null && variant.sizeDelta < 0)
+  ) {
+    return null;
+  }
+
+  if (variant.format === "webp" || variant.format === "avif") {
+    return null;
+  }
+
+  const savings = savingsPercent(variant.sizeDelta, job.file.size);
+  if (savings >= 10) {
+    return null;
+  }
+
+  const sourceLabel = variantFormatLabel(variant.format, variant.strategy);
+
+  return `${sourceLabel} only saved ${savings}%. Try WebP or AVIF if you want a much smaller export.`;
 }
 
 function compareImage(src: string, alt: string) {
@@ -114,7 +140,6 @@ function singlePreviewImage(src: string, alt: string) {
 }
 
 export function PreviewPanel({ job, onSelectVariant }: PreviewPanelProps) {
-  const [mode, setMode] = useState<"compare" | "inspect">("compare");
   const originalUrl = useObjectUrl(job?.file);
   const activeVariant = useMemo(
     () =>
@@ -124,12 +149,6 @@ export function PreviewPanel({ job, onSelectVariant }: PreviewPanelProps) {
   );
   const activeOutputUrl = useObjectUrl(activeVariant?.output);
   const latestVariant = job?.variants[job.variants.length - 1] ?? null;
-
-  useEffect(() => {
-    if (!(job?.activeVariantId && activeVariant?.output)) {
-      setMode("compare");
-    }
-  }, [activeVariant?.output, job?.activeVariantId]);
 
   if (!job) {
     return (
@@ -164,6 +183,7 @@ export function PreviewPanel({ job, onSelectVariant }: PreviewPanelProps) {
     activeOutputUrl &&
     activeVariant?.output
   );
+  const upgradeHint = formatUpgradeHint(job, activeVariant ?? bestVariant);
   const compareContent =
     compareReady && originalUrl && activeOutputUrl ? (
       <div className="h-full w-full overflow-hidden p-4">
@@ -234,25 +254,20 @@ export function PreviewPanel({ job, onSelectVariant }: PreviewPanelProps) {
           <p className={`text-[0.82rem] leading-6 ${activeSummary.tone}`}>
             {activeSummary.text}
           </p>
+          {activeVariant?.note ? (
+            <p className="text-[0.76rem] text-white/45 leading-5">
+              {activeVariant.note}
+            </p>
+          ) : null}
+          {upgradeHint ? (
+            <p className="text-[0.76rem] text-amber-300/90 leading-5">
+              {upgradeHint}
+            </p>
+          ) : null}
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex overflow-hidden rounded-[0.5rem] border border-border">
-            {(["compare", "inspect"] as const).map((currentMode) => (
-              <button
-                className={`px-3 py-1.5 font-medium text-[0.78rem] transition ${
-                  mode === currentMode
-                    ? "bg-white/8 text-text"
-                    : "bg-transparent text-muted hover:bg-white/5"
-                }`}
-                key={currentMode}
-                onClick={() => setMode(currentMode)}
-                type="button"
-              >
-                {currentMode === "compare" ? "Compare" : "Inspect"}
-              </button>
-            ))}
-          </div>
+        <div className="rounded-[0.5rem] border border-emerald-400/18 bg-emerald-400/8 px-3 py-1.5 font-medium text-[0.78rem] text-emerald-200">
+          Compare
         </div>
       </div>
 
@@ -298,7 +313,7 @@ export function PreviewPanel({ job, onSelectVariant }: PreviewPanelProps) {
                 type="button"
               >
                 <span className="font-medium">
-                  {formatLabel(variant.format)}
+                  {variantFormatLabel(variant.format, variant.strategy)}
                 </span>
                 {isBest && <span className="text-emerald-300">Best</span>}
                 {!isBest && isLatest && (
@@ -316,90 +331,7 @@ export function PreviewPanel({ job, onSelectVariant }: PreviewPanelProps) {
       </div>
 
       <div className="flex min-h-0 flex-1 overflow-hidden bg-[repeating-conic-gradient(rgba(255,255,255,0.03)_0%_25%,transparent_0%_50%)] [background-size:20px_20px]">
-        {mode === "compare" ? (
-          (compareContent ?? compareFallback)
-        ) : (
-          <TransformWrapper
-            centerOnInit
-            doubleClick={{ disabled: true }}
-            minScale={1}
-          >
-            {({ resetTransform, zoomIn, zoomOut }) => (
-              <div className="flex h-full min-h-0 flex-1 flex-col">
-                <div className="flex shrink-0 items-center justify-end gap-2 border-border border-b px-3 py-2">
-                  <button
-                    className="rounded-[0.5rem] border border-border bg-white/4 px-2.5 py-1.5 text-[0.78rem] text-text"
-                    onClick={() => zoomOut()}
-                    type="button"
-                  >
-                    -
-                  </button>
-                  <button
-                    className="rounded-[0.5rem] border border-border bg-white/4 px-2.5 py-1.5 text-[0.78rem] text-text"
-                    onClick={() => resetTransform()}
-                    type="button"
-                  >
-                    Reset
-                  </button>
-                  <button
-                    className="rounded-[0.5rem] border border-border bg-white/4 px-2.5 py-1.5 text-[0.78rem] text-text"
-                    onClick={() => zoomIn()}
-                    type="button"
-                  >
-                    +
-                  </button>
-                </div>
-                <TransformComponent
-                  contentClass="!h-full !w-full"
-                  wrapperClass="!h-full !w-full"
-                >
-                  <div className="grid h-full min-h-0 w-full gap-4 p-4 md:grid-cols-2">
-                    <div className="flex min-h-0 flex-col overflow-hidden rounded-[0.85rem] border border-border bg-black/30">
-                      <div className="border-border border-b px-3 py-2 text-[0.78rem] text-white/62">
-                        Original
-                      </div>
-                      <div className="flex min-h-0 flex-1 items-center justify-center p-3">
-                        {originalUrl ? (
-                          <img
-                            alt={`Original ${job.file.name}`}
-                            className="max-h-full max-w-full object-contain"
-                            height={1200}
-                            src={originalUrl}
-                            width={1600}
-                          />
-                        ) : null}
-                      </div>
-                    </div>
-
-                    <div className="flex min-h-0 flex-col overflow-hidden rounded-[0.85rem] border border-border bg-black/30">
-                      <div className="border-border border-b px-3 py-2 text-[0.78rem] text-white/62">
-                        {activeVariant?.output
-                          ? `${formatLabel(activeVariant.format)} version`
-                          : "Nothing smaller yet"}
-                      </div>
-                      <div className="flex min-h-0 flex-1 items-center justify-center p-3">
-                        {activeOutputUrl ? (
-                          <img
-                            alt={`Compressed ${job.file.name}`}
-                            className="max-h-full max-w-full object-contain"
-                            height={1200}
-                            src={activeOutputUrl}
-                            width={1600}
-                          />
-                        ) : (
-                          <p className="max-w-[20rem] text-center text-[0.88rem] text-muted">
-                            Nothing smaller to inspect yet. The original is
-                            still the better pick.
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </TransformComponent>
-              </div>
-            )}
-          </TransformWrapper>
-        )}
+        {compareContent ?? compareFallback}
       </div>
     </div>
   );

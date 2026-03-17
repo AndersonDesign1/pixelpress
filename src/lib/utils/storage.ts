@@ -1,6 +1,7 @@
 import type { CompressionSettings, FormatPreference } from "./types";
 
-const STORAGE_KEY = "pixelpress:last-settings:v2";
+// v3 was used during the PNG mode rollout before we changed the reload defaults.
+const STORAGE_KEY = "pixelpress:last-settings:v4";
 const validFormats: FormatPreference[] = [
   "original",
   "jpeg",
@@ -20,7 +21,11 @@ function isValidSettings(value: unknown): value is CompressionSettings {
     candidate.quality <= 100 &&
     typeof candidate.format === "string" &&
     validFormats.includes(candidate.format as FormatPreference) &&
-    typeof candidate.lossless === "boolean"
+    typeof candidate.lossless === "boolean" &&
+    (candidate.pngMode === "lossless" || candidate.pngMode === "compressed") &&
+    typeof candidate.pngColors === "number" &&
+    candidate.pngColors >= 2 &&
+    candidate.pngColors <= 256
   );
 }
 
@@ -34,7 +39,15 @@ export function loadSettings(): CompressionSettings | null {
       return null;
     }
     const parsed = JSON.parse(raw) as unknown;
-    return isValidSettings(parsed) ? parsed : null;
+    if (!isValidSettings(parsed)) {
+      return null;
+    }
+
+    return {
+      ...parsed,
+      format: "original",
+      lossless: false,
+    };
   } catch {
     return null;
   }
