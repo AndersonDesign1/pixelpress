@@ -165,8 +165,12 @@ async function encodeForStrategy(
     return { bytesBuffer, note, outputFormat, outputStage };
   }
 
-  const imageData = bitmapToImageData(bitmap);
-  bitmap.close();
+  let imageData: ImageData;
+  try {
+    imageData = bitmapToImageData(bitmap);
+  } finally {
+    bitmap.close();
+  }
 
   let bytesBuffer: ArrayBuffer;
 

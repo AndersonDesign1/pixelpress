@@ -1,5 +1,6 @@
 import type { CompressionSettings, FormatPreference } from "./types";
 
+// v3 was used during the PNG mode rollout before we changed the reload defaults.
 const STORAGE_KEY = "pixelpress:last-settings:v4";
 const validFormats: FormatPreference[] = [
   "original",
@@ -46,7 +47,6 @@ export function loadSettings(): CompressionSettings | null {
       ...parsed,
       format: "original",
       lossless: false,
-      pngMode: "lossless",
     };
   } catch {
     return null;
