@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-import { compressImageData, optimiseSourcePng } from "../codecs/compress";
+import { compressImageData, compressPngFile } from "../codecs/compress";
 import { buildOutputName } from "../utils/filenames";
 import {
   formatFromFile,
@@ -12,14 +12,17 @@ import type {
   OutputFormat,
   WorkerCompressRequest,
   WorkerCompressResponse,
+  WorkerProgressStage,
   WorkerRuntimeIssue,
 } from "../utils/types";
+
+const MAX_IMAGE_DATA_PIXELS = 12_000_000;
 
 function postProgress(
   sourceId: string,
   variantId: string,
   progress: number,
-  stage: "decoding" | "encoding"
+  stage: WorkerProgressStage
 ) {
   const message: WorkerCompressResponse = {
     kind: "progress",
@@ -64,8 +67,7 @@ function postRuntimeIssue(
   self.postMessage(message);
 }
 
-async function fileToImageData(file: File): Promise<ImageData> {
-  const bitmap = await createImageBitmap(file);
+function bitmapToImageData(bitmap: ImageBitmap): ImageData {
   const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
   const ctx = canvas.getContext("2d");
   if (!ctx) {
@@ -74,8 +76,51 @@ async function fileToImageData(file: File): Promise<ImageData> {
 
   ctx.drawImage(bitmap, 0, 0);
   const imageData = ctx.getImageData(0, 0, bitmap.width, bitmap.height);
-  bitmap.close();
   return imageData;
+}
+
+function qualityForCanvasEncode(
+  format: OutputFormat,
+  settings: WorkerCompressRequest["settings"],
+  strategy: CompressionStrategy
+) {
+  if (format === "png") {
+    return undefined;
+  }
+
+  if (strategy === "webp-lossless" || settings.lossless) {
+    return 1;
+  }
+
+  return Math.max(0.1, Math.min(1, settings.quality / 100));
+}
+
+async function encodeWithCanvas(
+  bitmap: ImageBitmap,
+  outputFormat: OutputFormat,
+  settings: WorkerCompressRequest["settings"],
+  strategy: CompressionStrategy
+): Promise<ArrayBuffer> {
+  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) {
+    throw new Error("Failed to initialize canvas context in worker.");
+  }
+
+  ctx.drawImage(bitmap, 0, 0);
+  bitmap.close();
+
+  const quality = qualityForCanvasEncode(outputFormat, settings, strategy);
+  const blob = await canvas.convertToBlob({
+    type: mimeTypeForFormat(outputFormat),
+    ...(quality === undefined ? {} : { quality }),
+  });
+
+  canvas.width = 0;
+  canvas.height = 0;
+
+  return blob.arrayBuffer();
 }
 
 async function encodeForStrategy(
@@ -83,23 +128,46 @@ async function encodeForStrategy(
   settings: WorkerCompressRequest["settings"],
   strategy: CompressionStrategy
 ) {
-  const sourceFormat = formatFromFile(file);
   const outputFormat = resolveOutputFormat(file, settings.format);
+  const sourceFormat = formatFromFile(file);
+  let note: string | undefined;
 
-  if (
-    sourceFormat === "png" &&
-    outputFormat === "png" &&
-    (strategy === "oxipng" || strategy === "png-encode")
-  ) {
-    const sourceBuffer = await file.arrayBuffer();
-    const bytesBuffer = await optimiseSourcePng(
-      sourceBuffer,
-      settings.lossless
-    );
-    return { bytesBuffer, outputFormat: "png" as const };
+  if (strategy === "png-optimize" && sourceFormat === "png") {
+    try {
+      const bytesBuffer = await compressPngFile(file);
+      return {
+        bytesBuffer,
+        note,
+        outputFormat,
+        outputStage: "encoding" as const,
+      };
+    } catch {
+      note =
+        "PNG optimization fell back to a PNG re-encode after the optimizer failed.";
+    }
   }
 
-  const imageData = await fileToImageData(file);
+  const bitmap = await createImageBitmap(file);
+  const filePixels = bitmap.width * bitmap.height;
+  const outputStage: WorkerProgressStage = "encoding";
+
+  if (
+    filePixels >= MAX_IMAGE_DATA_PIXELS &&
+    (outputFormat === "webp" || outputFormat === "jpeg")
+  ) {
+    const bytesBuffer = await encodeWithCanvas(
+      bitmap,
+      outputFormat,
+      settings,
+      strategy
+    );
+
+    return { bytesBuffer, note, outputFormat, outputStage };
+  }
+
+  const imageData = bitmapToImageData(bitmap);
+  bitmap.close();
+
   const bytesBuffer = await compressImageData(
     imageData,
     {
@@ -109,7 +177,7 @@ async function encodeForStrategy(
     strategy
   );
 
-  return { bytesBuffer, outputFormat };
+  return { bytesBuffer, note, outputFormat, outputStage };
 }
 
 self.onmessage = async (event: MessageEvent<WorkerCompressRequest>) => {
@@ -125,12 +193,9 @@ self.onmessage = async (event: MessageEvent<WorkerCompressRequest>) => {
 
   try {
     postProgress(sourceId, variantId, 20, "decoding");
-    const { bytesBuffer, outputFormat } = await encodeForStrategy(
-      file,
-      settings,
-      strategy
-    );
-    postProgress(sourceId, variantId, 90, "encoding");
+    const { bytesBuffer, note, outputFormat, outputStage } =
+      await encodeForStrategy(file, settings, strategy);
+    postProgress(sourceId, variantId, 90, outputStage);
     const requestedExtension = outputExtension(outputFormat);
     const outputName = buildOutputName(file.name, requestedExtension);
     const mime = mimeTypeForFormat(outputFormat);
@@ -139,6 +204,7 @@ self.onmessage = async (event: MessageEvent<WorkerCompressRequest>) => {
       autoGenerated,
       format: outputFormat,
       kind: "result",
+      note,
       ok: true,
       output,
       outputName,

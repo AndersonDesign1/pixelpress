@@ -7,7 +7,8 @@ There is no upload step and no backend doing secret image work somewhere else. T
 ## What the app does
 
 - Compresses images in the browser with `@jsquash` codecs
-- Optimizes PNGs with `oxipng`
+- Optimizes PNG output with `@jsquash/oxipng`
+- Keeps PNG-preserving optimization separate from WebP and AVIF conversion
 - Generates multiple candidate variants when that helps
 - Lets you compare the original and compressed output side by side
 - Keeps the best result by default, but still lets you inspect other versions
@@ -18,7 +19,7 @@ There is no upload step and no backend doing secret image work somewhere else. T
 - Astro 6 for the site shell and routes (Cloudflare Workers adapter)
 - React 19 for the compression workspace
 - Tailwind CSS v4 for styling
-- Web Workers for codec work
+- Web Workers for codec work and PNG optimization
 - Cloudflare Workers for deployment
 - Bun for installs and scripts
 
@@ -61,7 +62,7 @@ bun run deploy
 
 - `bun run check` runs both linting and `astro check`
 - `bun run preview` uses Astro's Cloudflare-aware preview runtime after a build
-- Compression stays client-side
+- Compression stays client-side, including PNG optimization
 - Last-used settings are stored in `localStorage`
 - SharedArrayBuffer support is enabled in production through COOP/COEP headers in Astro middleware (`src/middleware.ts`)
 

@@ -22,6 +22,12 @@ export default defineConfig({
         "@jsquash/oxipng",
         "@jsquash/png",
         "@jsquash/webp",
+        "astro",
+        "astro/runtime/client/dev-toolbar/entrypoint.js",
+        "astro/virtual-modules/transitions-events.js",
+        "astro/virtual-modules/transitions-router.js",
+        "astro/virtual-modules/transitions-swap-functions.js",
+        "astro/virtual-modules/transitions-types.js",
       ],
     },
     build: {

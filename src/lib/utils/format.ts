@@ -5,6 +5,17 @@ import type {
   OutputFormat,
 } from "./types";
 
+export const formatOptions: Array<{
+  label: string;
+  value: FormatPreference;
+}> = [
+  { label: "Original", value: "original" },
+  { label: "PNG", value: "png" },
+  { label: "JPEG", value: "jpeg" },
+  { label: "WebP", value: "webp" },
+  { label: "AVIF", value: "avif" },
+];
+
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) {
     return `${bytes} B`;
@@ -32,6 +43,33 @@ export function formatLabel(format: FormatPreference): string {
   }
 
   return format === "jpeg" ? "JPEG" : format.toUpperCase();
+}
+
+export function variantFormatLabel(
+  format: OutputFormat,
+  strategy: CompressionStrategy
+) {
+  if (strategy === "png-optimize") {
+    return "Optimized PNG";
+  }
+
+  if (strategy === "png-encode-fallback") {
+    return "PNG export";
+  }
+
+  if (strategy === "webp-lossless") {
+    return "WebP lossless";
+  }
+
+  if (strategy === "webp-lossy") {
+    return format === "webp" ? "WebP conversion" : "WebP";
+  }
+
+  if (strategy === "avif-lossy") {
+    return "AVIF conversion";
+  }
+
+  return format === "png" ? "PNG" : formatLabel(format);
 }
 
 export function formatFromMimeType(mimeType: string): OutputFormat | null {
@@ -103,4 +141,24 @@ export function settingsSignature(
     quality: settings.quality,
     strategy,
   });
+}
+
+export function buildSettingsForFormat(
+  settings: CompressionSettings,
+  format: FormatPreference
+): CompressionSettings {
+  let lossless = false;
+
+  if (format === "png") {
+    lossless = true;
+  } else if (format === "webp") {
+    lossless = settings.lossless;
+  }
+
+  return {
+    ...settings,
+    format,
+    quality: format === "png" ? 100 : settings.quality,
+    lossless,
+  };
 }

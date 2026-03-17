@@ -1,11 +1,8 @@
 import { Icon } from "@iconify/react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { buildSettingsForFormat, formatOptions } from "../../lib/utils/format";
 import { presets } from "../../lib/utils/presets";
-import type {
-  CompressionSettings,
-  FormatPreference,
-  OutputFormat,
-} from "../../lib/utils/types";
+import type { CompressionSettings, OutputFormat } from "../../lib/utils/types";
 
 interface ToolbarControlsProps {
   activePresetId: string | null;
@@ -22,14 +19,6 @@ interface ToolbarControlsProps {
   settings: CompressionSettings;
   sourceFormat: OutputFormat | null;
 }
-
-const formats: { label: string; value: FormatPreference }[] = [
-  { label: "Original", value: "original" },
-  { label: "PNG", value: "png" },
-  { label: "JPEG", value: "jpeg" },
-  { label: "WebP", value: "webp" },
-  { label: "AVIF", value: "avif" },
-];
 
 export function ToolbarControls({
   activePresetId,
@@ -51,6 +40,7 @@ export function ToolbarControls({
   const menuRef = useRef<HTMLDivElement>(null);
   const activeFormat =
     settings.format === "original" ? sourceFormat : settings.format;
+  const pngPreserveMode = activeFormat === "png";
   const losslessSupported = activeFormat === "png" || activeFormat === "webp";
   const selectedPreset = useMemo(
     () => presets.find((preset) => preset.id === activePresetId) ?? null,
@@ -211,16 +201,7 @@ export function ToolbarControls({
                   Format
                 </span>
                 <div className="flex overflow-hidden rounded-[0.5rem] border border-border">
-                  {formats.map((format) => {
-                    const nextSettings: CompressionSettings = {
-                      ...settings,
-                      format: format.value,
-                      lossless:
-                        format.value === "png" || format.value === "webp"
-                          ? settings.lossless
-                          : false,
-                    };
-
+                  {formatOptions.map((format) => {
                     return (
                       <button
                         className={`border-border border-r px-3 py-1.5 font-semibold text-[0.78rem] transition last:border-r-0 ${
@@ -229,7 +210,11 @@ export function ToolbarControls({
                             : "bg-transparent text-muted hover:bg-white/5"
                         }`}
                         key={format.value}
-                        onClick={() => onChange(nextSettings)}
+                        onClick={() =>
+                          onChange(
+                            buildSettingsForFormat(settings, format.value)
+                          )
+                        }
                         type="button"
                       >
                         {format.label}
@@ -245,7 +230,7 @@ export function ToolbarControls({
                 </span>
                 <input
                   className="h-1 flex-1 disabled:opacity-30"
-                  disabled={settings.lossless}
+                  disabled={pngPreserveMode || settings.lossless}
                   max={100}
                   min={1}
                   onChange={(event) =>
@@ -266,7 +251,7 @@ export function ToolbarControls({
                 <input
                   checked={settings.lossless}
                   className="size-[14px] cursor-pointer"
-                  disabled={!losslessSupported}
+                  disabled={!losslessSupported || pngPreserveMode}
                   onChange={(event) => {
                     const nextSettings = {
                       ...settings,
@@ -297,10 +282,11 @@ export function ToolbarControls({
               </p>
             )}
 
-            {activeFormat === "png" ? (
+            {pngPreserveMode ? (
               <p className="text-[0.74rem] text-white/45">
-                PNG stays lossless here, so it usually saves less than WebP or
-                AVIF. Switch formats when you want a much smaller file.
+                {settings.format === "png"
+                  ? "PNG export stays lossless and preserves transparency. Use WebP or AVIF when you want a smaller converted file."
+                  : "Original PNG mode now keeps PNG output and runs a lossless optimization pass instead of silently converting to WebP."}
               </p>
             ) : null}
           </div>

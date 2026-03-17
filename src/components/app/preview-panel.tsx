@@ -7,8 +7,8 @@ import {
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import {
   formatBytes,
-  formatLabel,
   savingsPercent,
+  variantFormatLabel,
 } from "../../lib/utils/format";
 import type { CompressionJob, CompressionVariant } from "../../lib/utils/types";
 
@@ -61,26 +61,29 @@ function variantSummary(variant: CompressionVariant, originalSize: number) {
 
   if (variant.sizeDelta > 0) {
     return {
-      text: `${formatLabel(variant.format)} came out ${savingsPercent(
-        variant.sizeDelta,
-        originalSize
-      )}% larger.`,
+      text: `${variantFormatLabel(
+        variant.format,
+        variant.strategy
+      )} came out ${savingsPercent(variant.sizeDelta, originalSize)}% larger.`,
       tone: "text-amber-300",
     };
   }
 
   if (variant.sizeDelta === 0) {
     return {
-      text: `${formatLabel(variant.format)} came out the same size.`,
+      text: `${variantFormatLabel(
+        variant.format,
+        variant.strategy
+      )} came out the same size.`,
       tone: "text-white/62",
     };
   }
 
   return {
-    text: `${formatLabel(variant.format)} saves ${savingsPercent(
-      variant.sizeDelta,
-      originalSize
-    )}%.`,
+    text: `${variantFormatLabel(
+      variant.format,
+      variant.strategy
+    )} saves ${savingsPercent(variant.sizeDelta, originalSize)}%.`,
     tone: "text-emerald-300",
   };
 }
@@ -234,6 +237,11 @@ export function PreviewPanel({ job, onSelectVariant }: PreviewPanelProps) {
           <p className={`text-[0.82rem] leading-6 ${activeSummary.tone}`}>
             {activeSummary.text}
           </p>
+          {activeVariant?.note ? (
+            <p className="text-[0.76rem] text-white/45 leading-5">
+              {activeVariant.note}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex items-center gap-2">
@@ -298,7 +306,7 @@ export function PreviewPanel({ job, onSelectVariant }: PreviewPanelProps) {
                 type="button"
               >
                 <span className="font-medium">
-                  {formatLabel(variant.format)}
+                  {variantFormatLabel(variant.format, variant.strategy)}
                 </span>
                 {isBest && <span className="text-emerald-300">Best</span>}
                 {!isBest && isLatest && (
@@ -374,7 +382,7 @@ export function PreviewPanel({ job, onSelectVariant }: PreviewPanelProps) {
                     <div className="flex min-h-0 flex-col overflow-hidden rounded-[0.85rem] border border-border bg-black/30">
                       <div className="border-border border-b px-3 py-2 text-[0.78rem] text-white/62">
                         {activeVariant?.output
-                          ? `${formatLabel(activeVariant.format)} version`
+                          ? `${variantFormatLabel(activeVariant.format, activeVariant.strategy)} version`
                           : "Nothing smaller yet"}
                       </div>
                       <div className="flex min-h-0 flex-1 items-center justify-center p-3">

@@ -1,8 +1,8 @@
 import { Icon } from "@iconify/react";
 import {
   formatBytes,
-  formatLabel,
   savingsPercent,
+  variantFormatLabel,
 } from "../../lib/utils/format";
 import type { CompressionJob } from "../../lib/utils/types";
 
@@ -10,6 +10,38 @@ interface CompressionListProps {
   jobs: CompressionJob[];
   onSelect: (id: string) => void;
   selectedId: string | null;
+}
+
+function jobSummary(job: CompressionJob) {
+  const bestVariant =
+    job.bestVariantId === null
+      ? null
+      : (job.variants.find((variant) => variant.id === job.bestVariantId) ??
+        null);
+  const latestVariant = job.variants.at(-1) ?? null;
+
+  let summary = "The original is still the smallest.";
+  let summaryClassName = "text-white/62";
+
+  if (
+    bestVariant &&
+    bestVariant.sizeDelta !== null &&
+    bestVariant.sizeDelta < 0
+  ) {
+    summary = `Best ${variantFormatLabel(bestVariant.format, bestVariant.strategy)} saves ${savingsPercent(bestVariant.sizeDelta, job.file.size)}%`;
+    summaryClassName = "text-emerald-300";
+  } else if (latestVariant?.status === "processing") {
+    summary = `Trying ${variantFormatLabel(latestVariant.format, latestVariant.strategy)} now...`;
+    summaryClassName = "text-sky-300";
+  } else if (latestVariant?.status === "larger-than-original") {
+    summary = "The latest try came out larger.";
+    summaryClassName = "text-amber-300";
+  } else if (job.status === "error") {
+    summary = "This one needs another pass.";
+    summaryClassName = "text-rose-300";
+  }
+
+  return { bestVariant, latestVariant, summary, summaryClassName };
 }
 
 function statusIcon(status: CompressionJob["status"]) {
@@ -62,38 +94,9 @@ export function CompressionList({
       </div>
       <div className="flex-1 overflow-y-auto p-1.5">
         {jobs.map((job) => {
-          const bestVariant =
-            job.bestVariantId === null
-              ? null
-              : (job.variants.find(
-                  (variant) => variant.id === job.bestVariantId
-                ) ?? null);
-          const latestVariant = job.variants.at(-1) ?? null;
+          const { latestVariant, summary, summaryClassName } = jobSummary(job);
           const active = selectedId === job.id;
           const variantCount = job.variants.length;
-
-          let summary = "The original is still the smallest.";
-          let summaryClassName = "text-white/62";
-          if (
-            bestVariant &&
-            bestVariant.sizeDelta !== null &&
-            bestVariant.sizeDelta < 0
-          ) {
-            summary = `Best ${formatLabel(bestVariant.format)} saves ${savingsPercent(
-              bestVariant.sizeDelta,
-              job.file.size
-            )}%`;
-            summaryClassName = "text-emerald-300";
-          } else if (latestVariant?.status === "processing") {
-            summary = `Trying ${formatLabel(latestVariant.format)} now...`;
-            summaryClassName = "text-sky-300";
-          } else if (latestVariant?.status === "larger-than-original") {
-            summary = "The latest try came out larger.";
-            summaryClassName = "text-amber-300";
-          } else if (job.status === "error") {
-            summary = "This one needs another pass.";
-            summaryClassName = "text-rose-300";
-          }
 
           return (
             <button
@@ -129,6 +132,12 @@ export function CompressionList({
               {job.error ? (
                 <p className="pl-6 text-[0.73rem] text-error leading-[1.35]">
                   {job.error}
+                </p>
+              ) : null}
+
+              {latestVariant?.note ? (
+                <p className="pl-6 text-[0.73rem] text-white/45 leading-[1.35]">
+                  {latestVariant.note}
                 </p>
               ) : null}
 
