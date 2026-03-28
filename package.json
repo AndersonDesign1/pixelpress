@@ -13,6 +13,7 @@
     "preview": "astro preview --host 0.0.0.0 --port 4321",
     "check": "ultracite check && astro check",
     "fix": "ultracite fix",
+    "test": "vitest",
     "deploy": "bun run build"
   },
   "dependencies": {
@@ -38,6 +39,7 @@
     "@astrojs/check": "^0.9.7",
     "@biomejs/biome": "2.4.5",
     "typescript": "^5.9.2",
-    "ultracite": "7.2.5"
+    "ultracite": "7.2.5",
+    "vitest": "^4.1.2"
   }
 }
