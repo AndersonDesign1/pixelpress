@@ -1,8 +1,0 @@
-/*
-  Cross-Origin-Opener-Policy: same-origin
-  Cross-Origin-Embedder-Policy: require-corp
-  Cross-Origin-Resource-Policy: same-origin
-  Origin-Agent-Cluster: ?1
-
-/_astro/*
-  Cross-Origin-Resource-Policy: same-origin

@@ -1,19 +1,23 @@
-import cloudflare from "@astrojs/cloudflare";
+import node from "@astrojs/node";
 import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
 import wasm from "vite-plugin-wasm";
 
 export default defineConfig({
-  site: "https://pixelpress.workers.dev",
+  site: "https://pixelpress.app",
   output: "server",
   redirects: {
     "/app": "/",
   },
   integrations: [react()],
-  adapter: cloudflare({
-    imageService: "compile",
+  adapter: node({
+    mode: "standalone",
   }),
+  server: {
+    host: true,
+    port: process.env.PORT || 4321,
+  },
   vite: {
     plugins: [tailwindcss(), wasm()],
     optimizeDeps: {
